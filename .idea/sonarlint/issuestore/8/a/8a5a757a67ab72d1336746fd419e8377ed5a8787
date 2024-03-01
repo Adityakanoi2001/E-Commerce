@@ -1,0 +1,8 @@
+
+t	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(¤¼›˜ÿÿÿÿÿ
+X
+java:S6813"BRemove this field injection and use constructor injection instead.(¯ðÊ 
+`
+java:S1128"KRemove this unused import 'org.springframework.core.io.FileSystemResource'.(°ü‘4
+k
+java:S1128"PRemove this unused import 'org.springframework.mail.javamail.MimeMessageHelper'.(Ö€”÷øÿÿÿÿ

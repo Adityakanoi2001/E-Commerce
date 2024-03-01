@@ -1,0 +1,5 @@
+
+{
+java:S1488"^Immediately return this expression instead of assigning it to the temporary variable "status".(¾¯ü8òÑ»Ûß1
+X
+java:S6813"BRemove this field injection and use constructor injection instead.(êæÄŞ

@@ -1,0 +1,51 @@
+
+E
+java:S3740m"/Provide the parametrized type for this generic.(’¾Ÿ
+D
+java:S3740w"/Provide the parametrized type for this generic.(Šñ‰
+J
+java:S3740~"/Provide the parametrized type for this generic.(–„Şıÿÿÿÿ
+K
+java:S3740¡"/Provide the parametrized type for this generic.(Êºİùûÿÿÿÿ
+F
+java:S3740¨"/Provide the parametrized type for this generic.(£°¯Ÿ
+F
+java:S3740Ä"/Provide the parametrized type for this generic.(úÈ¿Ò
+F
+java:S3740ê"/Provide the parametrized type for this generic.(çÇß
+F
+java:S3740“"/Provide the parametrized type for this generic.(çÇß
+F
+java:S3740˜"/Provide the parametrized type for this generic.(•³ê¼
+k
+java:S1192B"UDefine a constant instead of duplicating this literal "productsEntities._id" 4 times.(»ıèû
+w
+java:S1192]"\Define a constant instead of duplicating this literal "productsEntities.$.quantity" 3 times.(·ÆŠ³ûÿÿÿÿ
+`
+java:S1192K"JDefine a constant instead of duplicating this literal "totalCost" 5 times.(Ã¡‘Í
+o	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(Ì­š½
+X
+java:S6813""BRemove this field injection and use constructor injection instead.(êæÄŞ
+X
+java:S6813%"BRemove this field injection and use constructor injection instead.(êæÄŞ
+X
+java:S6813("BRemove this field injection and use constructor injection instead.(êæÄŞ
+X
+java:S6813*"BRemove this field injection and use constructor injection instead.(êæÄŞ
+h	java:S100u"NRename this method name to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ÈäÀÓøÿÿÿÿ
+h	java:S100|"NRename this method name to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(à‚«úÿÿÿÿ
+X
+java:S1854Ë"ARemove this useless assignment to local variable "stockCheckDto".(Œ©äÃ
+I
+java:S1481Ë"2Remove this unused "stockCheckDto" local variable.(Œ©äÃ
+W	java:S125Ø"<This block of commented-out lines of code should be removed.(å€éşÿÿÿÿ
+X
+java:S1854ñ"ARemove this useless assignment to local variable "stockCheckDto".(Œ©äÃ
+\
+java:S1854ï"ERemove this useless assignment to local variable "currentStockValue".(¨Ÿ«à
+M
+java:S1481ï"6Remove this unused "currentStockValue" local variable.(¨Ÿ«à
+I
+java:S1481ñ"2Remove this unused "stockCheckDto" local variable.(Œ©äÃ
+R	java:S125ó"<This block of commented-out lines of code should be removed.(ôäÍú
+W	java:S125€"<This block of commented-out lines of code should be removed.(å€éşÿÿÿÿ
