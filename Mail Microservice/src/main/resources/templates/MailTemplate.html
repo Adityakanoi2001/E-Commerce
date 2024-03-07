@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Receipt for completed order</title>
+    <style>
+        /* Reset some default styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        /* Container for the email content */
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header styles */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        /* Consignor and Consignee info styles */
+        .consignor-info,
+        .consignee-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .info-section {
+            flex: 1;
+            margin-right: 20px;
+        }
+
+        .info-section:last-child {
+            margin-right: 0;
+        }
+
+        .consignor-info p,
+        .consignee-info p {
+            margin: 5px 0;
+        }
+
+        /* Invoice details styles */
+        .invoice-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .invoice-details .info-section {
+            margin-right: 0;
+        }
+
+        .invoice-details table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-left: 20px;
+        }
+
+        .invoice-details th,
+        .invoice-details td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .invoice-details th {
+            background-color: #f2f2f2;
+        }
+
+        /* Trip details styles */
+        .trip-details {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Location details styles */
+        .location-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .address {
+            flex: 1;
+            margin-right: 20px;
+            padding: 10px;
+            background-color: #f2f2f2;
+            border: 1px solid #ddd;
+        }
+
+        .address:last-child {
+            margin-right: 0;
+        }
+
+        /* Declaration styles */
+        .declaration {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f2f2f2;
+            border: 1px solid #ddd;
+        }
+
+        /* Company info styles */
+        .company-info {
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <div class="header">
+        <h2>Invoice/ Consignment note</h2>
+        <p>Bombay Kitchen - Where Taste Meets Flavour </p>
+    </div>
+    <div class="consignor-info">
+        <div class="info-section">
+            <p><strong>CONSIGNOR NAME:</strong> <span th:text="${consignorName}"></span></p>
+        </div>
+    </div>
+    <div class="consignee-info">
+        <p><strong>CONSIGNEE NAME:</strong> <span th:text="${consigneeName}"></span></p>
+        <p><strong>CONSIGNEE PHONE NUMBER:</strong> <span th:text="${phoneNumber}"></span></p>
+        <p><strong>NATURE OF GOODS:</strong> <span th:text="${goodsNature}"></span></p>
+    </div>
+    <div class="invoice-details">
+        <div class="info-section">
+            <p><strong>Invoice Number:</strong> <span th:text="${invoiceNumber}"></span></p>
+            <p><strong>Date:</strong> <span th:text="${invoiceDate}"></span></p>
+        </div>
+        <table>
+            <tr>
+                <th>Total Amount (Rounded)</th>
+                <td th:text="${totalAmount}"></td>
+            </tr>
+            <tr>
+                <th>Sub Total</th>
+                <td th:text="${subTotal}"></td>
+            </tr>
+            <tr>
+                <th>Discount</th>
+                <td th:text="${discount}"></td>
+            </tr>
+            <tr>
+                <th>Delivery Charges</th>
+                <td th:text="${deliverCharges}"></td>
+            </tr>
+            <tr>
+                <th>Net Fare</th>
+                <td th:text="${netFare}"></td>
+            </tr>
+        </table>
+    </div>
+    <div class="trip-details">
+        <p>Happy to complete your Order </p>
+        <span th:text="${deliverPartnerName}"></span></p>
+    </div>
+    <div class="location-details">
+        <div class="address">
+            <p><strong>Pickup Location</strong></p>
+            <p><span th:text="${pickupTime}"></span>, <span th:text="${pickupDate}"></span></p>
+            <p th:utext="${pickupAddress}"></p>
+        </div>
+        <div class="address">
+            <p><strong>Drop Location</strong></p>
+            <p><span th:text="${dropTime}"></span>, <span th:text="${dropDate}"></span></p>
+            <p th:utext="${dropAddress}"></p>
+        </div>
+    </div>
+    <div class="declaration">
+        <p><strong>DECLARATION:</strong></p>
+        <p>1. I/We hereby declare that though our aggregate turnover in any preceding financial year
+            from 2017-18 onwards is more than the aggregate turnover notified under sub-rule (4) of
+            rule 48, we are not required to prepare an invoice in terms of the provisions of the
+            said sub-rule</p>
+        <p>2. Inputs relating consignment, consignor and consignee information are provides by the
+            user. We hereby declare that Input Tax Credit of Capital Goods, input and input
+            Services, used for providing transportation services has not been taken by us. Please
+            visit https://porter.in/terms-of-service for applicable T&C</p>
+    </div>
+    <div class="company-info">
+        <p>Bombay Kitchen</p>
+        <p>Bombay Kitchen , Block 11 , Suncity Apartments , Sarjapur Junction , Ibblur , Bengalurur - 560102</p>
+        <p>Signature on behalf of Bombay Kitchen</p>
+        <p>bombaykitchen@gmail.com</p>
+        <p>bombaykitchen.in</p>
+        <p>+919324222031</p>
+    </div>
+</div>
+</body>
+</html>

@@ -7,16 +7,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 
-import com.example.mail.Services.SendMailService;
-import com.example.mail.Services.ServiceImpl.SendMailServiceImpl;
-import com.example.mail.entity.EmailClass;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import com.example.mail.Entity.EmailEntity;
 
 import java.util.logging.Logger;
 
@@ -41,7 +34,7 @@ class MailApplicationTests {
 		try {
 			log.info("Starting execution of sendSimpleMail");
 			String expectedValue="";
-			EmailClass details = null;
+			EmailEntity details = null;
 
 
 			JUnitMethod junitmethod  =new JUnitMethod();
