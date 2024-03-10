@@ -1,0 +1,11 @@
+
+E
+java:S3740"/Provide the parametrized type for this generic.(Í€§
+E
+java:S3740""/Provide the parametrized type for this generic.(í­Ê„
+X
+java:S6813"BRemove this field injection and use constructor injection instead.(êæÄŞ
+c	java:S100"NRename this method name to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(¹ñ»
+h	java:S100"NRename this method name to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(•î½Àûÿÿÿÿ
+^
+java:S1128"CRemove this unused import 'com.example.ecommerce.entity.UserTable'.(³æĞŒúÿÿÿÿ
