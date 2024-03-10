@@ -1,0 +1,9 @@
+
+y
+java:S1488J"^Immediately return this expression instead of assigning it to the temporary variable "myHash".(Ë† ûÿÿÿÿ
+X
+java:S6813"BRemove this field injection and use constructor injection instead.(êæÄŞ
+X
+java:S6813"BRemove this field injection and use constructor injection instead.(êæÄŞ
+m
+java:S2139\"XEither log this exception and handle it, or rethrow it with some contextual information.(ÿÒ„p

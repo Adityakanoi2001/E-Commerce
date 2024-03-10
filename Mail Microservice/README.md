@@ -1,4 +1,4 @@
-<h1 align="center">Welcome to E-Commerce 👋</h1>
+<h1 align="center">Welcome to Mail Microservice 👋</h1>
 <p>
 </p>
 
