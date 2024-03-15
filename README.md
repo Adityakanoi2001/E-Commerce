@@ -1,9 +1,10 @@
-<h1 align="center">Welcome to E-Commerce 👋</h1>
+<h1 align="center">Welcome to Bli-Commerce 🧑🏻‍🦰👩‍🦳🚛📦</h1>
 <p>
 </p>
 
+![Ecommerce Banner](https://raw.githubusercontent.com/Adityakanoi2001/E-Commerce/7f24f2e49718332d4fc7b6f23bb6f22f7032217f/Bli-Commerce.png)
 
-# Dynamic E-Commerce Application Platform 🚀
+# Dynamic E-Commerce Application Platform based on Distributed System Architecture🚀
 
 The E-Commerce Services are built upon a cutting-edge tech stack, offering a plethora of features and capabilities.
 
