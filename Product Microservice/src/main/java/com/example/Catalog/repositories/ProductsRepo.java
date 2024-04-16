@@ -1,9 +1,8 @@
-package com.example.productsMongo.repositories;
+package com.example.Catalog.repositories;
 
-import com.example.productsMongo.ProductsDto.ProductsDto;
-import com.example.productsMongo.entities.ProductsEntity;
+import com.example.Catalog.ProductsDto.ProductsDto;
+import com.example.Catalog.entities.ProductsEntity;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

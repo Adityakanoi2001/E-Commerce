@@ -1,4 +1,4 @@
-package com.example.productsMongo.ProductsDto;
+package com.example.Catalog.ProductsDto;
 
 import lombok.Data;
 

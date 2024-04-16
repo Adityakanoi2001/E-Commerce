@@ -1,12 +1,11 @@
-package com.example.productsMongo.services.impl;
+package com.example.Catalog.services.impl;
 
 
-import com.example.productsMongo.ProductsDto.*;
-import com.example.productsMongo.entities.ProductsEntity;
-import com.example.productsMongo.entities.Reviews;
-import com.example.productsMongo.repositories.ProductsRepo;
-import com.example.productsMongo.services.ProductsService;
-import org.springframework.beans.BeanUtils;
+import com.example.Catalog.ProductsDto.*;
+import com.example.Catalog.entities.ProductsEntity;
+import com.example.Catalog.entities.Reviews;
+import com.example.Catalog.repositories.ProductsRepo;
+import com.example.Catalog.services.ProductsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -14,7 +13,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
