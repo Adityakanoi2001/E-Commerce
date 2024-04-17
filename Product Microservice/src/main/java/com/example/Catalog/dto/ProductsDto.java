@@ -1,8 +1,8 @@
-package com.example.productsMongo.ProductsDto;
+package com.example.Catalog.dto;
 
 
 
-import com.example.productsMongo.entities.Reviews;
+import com.example.Catalog.entities.Reviews;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductDtos {
+public class ProductsDto {
 
     private String productId;
 
@@ -34,12 +34,10 @@ public class ProductDtos {
     private Integer stock;
 
     private String brand;
-
     private int rating=5;
     private int noOfBuyers=1;
 
     private List<Reviews> review;
-
 
 
 }

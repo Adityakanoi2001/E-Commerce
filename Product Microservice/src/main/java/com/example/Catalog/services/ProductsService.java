@@ -1,14 +1,9 @@
-package com.example.productsMongo.services;
+package com.example.Catalog.services;
 
 
 
-import com.example.productsMongo.ProductsDto.*;
-import com.example.productsMongo.entities.ProductsEntity;
-import io.swagger.models.auth.In;
-import org.springframework.http.HttpStatus;
-
-import java.util.List;
-import java.util.Optional;
+import com.example.Catalog.dto.*;
+import com.example.Catalog.entities.ProductsEntity;
 
 public interface ProductsService {
 

@@ -1,6 +1,6 @@
-package com.example.productsMongo.ProductsDto;
+package com.example.Catalog.dto;
 
-import com.example.productsMongo.entities.ProductsEntity;
+import com.example.Catalog.entities.ProductsEntity;
 
 import java.util.List;
 
