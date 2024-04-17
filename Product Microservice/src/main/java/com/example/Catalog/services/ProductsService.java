@@ -2,7 +2,7 @@ package com.example.Catalog.services;
 
 
 
-import com.example.Catalog.ProductsDto.*;
+import com.example.Catalog.dto.*;
 import com.example.Catalog.entities.ProductsEntity;
 
 public interface ProductsService {

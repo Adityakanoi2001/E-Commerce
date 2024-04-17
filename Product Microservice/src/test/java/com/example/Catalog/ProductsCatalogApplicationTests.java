@@ -10,10 +10,10 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.Catalog.repositories.ProductsRepo;
-import com.example.Catalog.services.impl.ProductsServiceImpl;
+import com.example.Catalog.services.serviceImpls.ProductsServiceImpl;
 
 @SpringBootTest
-class ProductsMongoApplicationTests {
+class ProductsCatalogApplicationTests {
 
 	@Test
 	void contextLoads() {

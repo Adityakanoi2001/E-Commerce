@@ -11,13 +11,12 @@ import java.util.List;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
-@Document // testing rating and noofbuyers on the new testcollection for bson error
+@Document
 public class ProductsEntity {
 
     @Id
     private String productId;
+
     private String productName;
     private String categoryId;
     private String productDescription;
@@ -27,10 +26,8 @@ public class ProductsEntity {
     private double price;
     private int stock;
     private String brand;
-
     private int rating=5;
     private int noOfBuyers=1;
-
     private List<Reviews> review;
 }
 

@@ -1,6 +1,6 @@
 package com.example.Catalog.controller;
 
-import com.example.Catalog.ProductsDto.*;
+import com.example.Catalog.dto.*;
 import com.example.Catalog.entities.ProductsEntity;
 import com.example.Catalog.entities.UserDTO;
 import com.example.Catalog.repositories.ProductsRepo;

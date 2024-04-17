@@ -6,11 +6,10 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
 @EnableSwagger2
-//@EnableFeignClients
-public class ProductsMongoApplication {
+public class ProductsCatalogApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ProductsMongoApplication.class, args);
+		SpringApplication.run(ProductsCatalogApplication.class, args);
 	}
 
 }

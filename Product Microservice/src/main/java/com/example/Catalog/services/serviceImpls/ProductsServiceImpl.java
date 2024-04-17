@@ -1,7 +1,7 @@
-package com.example.Catalog.services.impl;
+package com.example.Catalog.services.serviceImpls;
 
 
-import com.example.Catalog.ProductsDto.*;
+import com.example.Catalog.dto.*;
 import com.example.Catalog.entities.ProductsEntity;
 import com.example.Catalog.entities.Reviews;
 import com.example.Catalog.repositories.ProductsRepo;
