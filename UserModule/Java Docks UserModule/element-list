@@ -1,0 +1,11 @@
+com.example.UserModule
+com.example.UserModule.config
+com.example.UserModule.controller
+com.example.UserModule.dto
+com.example.UserModule.entity
+com.example.UserModule.exceptions
+com.example.UserModule.helper
+com.example.UserModule.properties
+com.example.UserModule.repo
+com.example.UserModule.service.serviceImpl
+com.example.UserModule.service.serviceImpl.service
