@@ -9,14 +9,18 @@
         <module name="MerchantMongo" />
         <module name="mongo1" />
         <module name="CartEcommerce" />
+        <module name="MailMicroservice" />
         <module name="mail" />
-        <module name="ecommerce" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="ecommerce" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="CartEcommerce" options="-parameters" />
+      <module name="MailMicroservice" options="-parameters" />
       <module name="MerchantMongo" options="-parameters" />
       <module name="ecommerce" options="-parameters" />
       <module name="mail" options="-parameters" />
