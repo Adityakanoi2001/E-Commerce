@@ -17,6 +17,7 @@ public class UserModule {
 
   public static void main(String[] args) {
     SpringApplication.run(UserModule.class, args);
+    System.out.println("Server Stared at" + " " + "http://localhost:8800/swagger-ui/index.html#/");
   }
 
 }

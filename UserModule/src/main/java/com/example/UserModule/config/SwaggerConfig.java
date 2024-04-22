@@ -30,7 +30,7 @@ public class SwaggerConfig {
   }
 
   private ApiInfo getApiInfo() {
-    return new ApiInfoBuilder().title("Campus Connect User Authentication Microservice")
+    return new ApiInfoBuilder().title("BliCommerce User Authentication Microservice")
         .version(applicationProperties.getVersion())
         .description("API's for Sign-In and Sign-Up for the User")
         .contact(new Contact("Aditya Kanoi", "https://adityakanoi123.wixsite.com/adityakanoi", "adityakanoi123@gmail.com"))
