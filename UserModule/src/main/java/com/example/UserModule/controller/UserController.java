@@ -21,7 +21,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Api("Campus Connect User API's")
+@Api("BliCommerce User API's")
 @RequestMapping(UserModuleApiPath.BASE_PATH)
 @RestController
 public class UserController {

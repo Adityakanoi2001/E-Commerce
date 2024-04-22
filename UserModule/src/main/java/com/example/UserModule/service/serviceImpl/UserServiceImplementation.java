@@ -27,6 +27,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
@@ -48,6 +49,7 @@ import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Primary
 @Service
 public class UserServiceImplementation implements UserService {
 
@@ -222,7 +224,7 @@ public class UserServiceImplementation implements UserService {
 
     EmailDetails emailDetails = new EmailDetails();
     emailDetails.setRecipient(email);
-    emailDetails.setSubject("Password Reset Token - CampusConnect");
+    emailDetails.setSubject("Password Reset Token - Blicommerce");
     emailDetails.setMsgBody("The User Token for Password Reset is : " + userToken);
     PasswordResetLinkDto passwordResetLinkDto = new PasswordResetLinkDto();
     passwordResetLinkDto.setResponseMessage("Authentication Token Sent Successfully");
