@@ -1,0 +1,11 @@
+id,account_creation_date,device,first_login_date,last_login_date,location,password_reset_attempts,user_activity,live_user_flag,user_id
+1,2023-09-11 16:12:41.242000,Chrome 116.0 - Mac OS X 10.15,2023-09-11 16:14:01.259000,2023-09-11 16:16:02.082000,"Asia, India, Bengaluru",3,active,true,1
+2,2023-09-13 17:23:34.833000,Chrome 116.0 - Mac OS X 10.15,2023-09-13 17:28:39.973000,2023-09-13 17:28:39.557000,"North America, United States, New York",3,fresh,true,2
+3,2023-09-13 17:23:52.936000,Chrome 116.0 - Mac OS X 10.15,2023-09-13 17:31:13.600000,2023-09-13 17:31:13.512000,"North America, United States, Lombard",3,fresh,true,3
+4,2023-09-13 17:24:10.064000,Chrome 116.0 - Mac OS X 10.15,2023-09-13 17:32:06.534000,2023-09-13 17:32:06.459000,"North America, United States, San Francisco De Las Llagas",3,fresh,true,4
+5,2023-09-13 17:25:02.302000,Chrome 116.0 - Mac OS X 10.15,2023-09-13 17:33:48.767000,2023-09-13 17:33:48.695000,"Europe, United Kingdom, Kilburn",3,fresh,true,5
+6,2023-09-13 17:25:15.284000,Chrome 116.0 - Mac OS X 10.15,2023-09-13 17:35:18.731000,2023-09-13 17:35:18.667000,"Oceania, Australia, Sydney",3,fresh,true,6
+7,2023-09-13 17:25:29.022000,Chrome 116.0 - Mac OS X 10.15,2023-09-13 17:36:07.140000,2023-09-13 17:36:07.097000,"Asia, India, New Delhi",3,fresh,true,7
+8,2023-09-13 17:26:03.128000,Chrome 116.0 - Mac OS X 10.15,2023-09-13 17:37:39.873000,2023-09-13 17:37:39.825000,"Asia, Japan, Takasago",3,fresh,true,8
+9,2023-09-13 17:26:14.897000,Chrome 116.0 - Mac OS X 10.15,2023-09-13 17:40:11.897000,2023-09-13 17:40:11.769000,"Africa, South Africa, Cape Town",3,fresh,true,9
+10,2023-09-13 17:26:31.094000,Chrome 116.0 - Mac OS X 10.15,2023-09-13 17:41:06.846000,2023-09-13 17:41:06.792000,"Europe, France, Paris",3,fresh,true,10
