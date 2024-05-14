@@ -97,6 +97,11 @@
 			<version>3.0.0</version>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.11</version>
+		</dependency>
+		<dependency>
 			<groupId>com.github.ua-parser</groupId>
 			<artifactId>uap-java</artifactId>
 			<version>1.4.0</version>

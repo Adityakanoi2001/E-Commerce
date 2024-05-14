@@ -7,6 +7,7 @@ import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ua_parser.Client;
@@ -18,7 +19,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 
 import static java.util.Objects.nonNull;
-
+@Lazy
 @Service
 public class GeoIPLocationServiceImpl implements GeoIPLocationService {
 
