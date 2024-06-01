@@ -16,7 +16,6 @@ public class ProductsEntity {
 
     @Id
     private String productId;
-
     private String productName;
     private String categoryId;
     private String productDescription;
