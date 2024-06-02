@@ -3,8 +3,10 @@ package com.example.Catalog.controller;
 import com.example.Catalog.dto.*;
 import com.example.Catalog.entities.ProductsEntity;
 import com.example.Catalog.entities.UserDTO;
-import com.example.Catalog.repositories.ProductsRepo;
+import com.example.Catalog.helper.ProductCatalogApiPaths;
 import com.example.Catalog.services.ProductsService;
+import jdk.jfr.Description;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,32 +14,29 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "/products")
+@RequestMapping(value = ProductCatalogApiPaths.BASE_PATH)
+@Slf4j
 public class ProductsController {
 
-
   @Autowired
-  public ProductsService productsService;
-
-  @Autowired
-  public ProductsRepo productsRepo;
-
+  private ProductsService productsService;
 
   @PostMapping(value = "/add")
   public ResponseEntity<String> addProducts(@RequestBody ProductsDto productsDto) {
-
-    if (productsRepo.existsById(productsDto.getProductId()))
-      return new ResponseEntity<String>("product id already exists add new product id", HttpStatus.OK);
+//
+//    if (productsRepo.existsById(productsDto.getProductId()))
+//      return new ResponseEntity<String>("product id already exists add new product id", HttpStatus.OK);
 
     ProductsEntity currentProduct = new ProductsEntity();
     BeanUtils.copyProperties(productsDto, currentProduct);
     currentProduct.setProductName(productsDto.getProductName().toLowerCase());
     productsService.addProducts(currentProduct);
 
-    return new ResponseEntity<String>("Added Product with id : " + currentProduct.getProductId(), HttpStatus.CREATED);
+    return new ResponseEntity<String>("Added Product with id : " + currentProduct.getProductSkuId(), HttpStatus.CREATED);
   }
 
 
@@ -54,7 +53,7 @@ public class ProductsController {
     ProductsEntity currentproduct = new ProductsEntity();
     BeanUtils.copyProperties(product, currentproduct);
     productsService.updateProduct(currentproduct);
-    return new ResponseEntity<String>("product updated with id +:" + currentproduct.getProductId(), HttpStatus.OK);
+    return new ResponseEntity<String>("product updated with id +:" + currentproduct.getProductSkuId(), HttpStatus.OK);
   }
 
 
@@ -80,7 +79,7 @@ public class ProductsController {
     List<ProductsEntity> l = new ArrayList<ProductsEntity>();
     Iterable<ProductsEntity> productsIterable = productsService.productsList();
     for (ProductsEntity s : productsIterable) {
-      if (s.getProductId().equals(userDTO.getUserId()))
+      if (s.getProductSkuId().equals(userDTO.getUserId()))
         l.add(s);
     }
 
@@ -95,7 +94,7 @@ public class ProductsController {
     List<ProductsEntity> l = new ArrayList<ProductsEntity>();
     Iterable<ProductsEntity> productsIterable = productsService.productsList();
     for (ProductsEntity s : productsIterable) {
-      if (s.getProductId().equals(id))
+      if (s.getProductSkuId().equals(id))
         l.add(s);
     }
 
@@ -219,12 +218,10 @@ public class ProductsController {
 
   }
 
-
-  @PostMapping("/reviewsForProduct")
-
-  public String reviewsForProduct(@RequestBody ReviewDTO review) {
-    return productsService.reviews(review.getReviewContent(), review.getUserID(), review.getProductId());
+  @PostMapping(ProductCatalogApiPaths.ADD_NEW_REVIEW)
+  @Description("Api to Add Review for Any Product")
+  public ResponseEntity<Boolean> addNewReviewForProduct(@RequestBody ProductReviewInputDto productReviewInputDto) {
+    log.warn("Invoking API for Adding Product Review at Time : {}", new Date());
+    return new ResponseEntity<>(productsService.addNewReviewForProduct(productReviewInputDto), HttpStatus.OK);
   }
-
-
 }

@@ -22,9 +22,11 @@ public interface ProductsService {
     public int getRating(String productId,Integer currentRatingNew);
 
    public void countOfBuyers(String productId);
-   public String reviews(String review,String userId,String productId);
 
-
-
+    /**
+     * @param productReviewInputDto
+     * @return boolean success/failure
+     */
+   public boolean addNewReviewForProduct (ProductReviewInputDto productReviewInputDto);
 
 }
