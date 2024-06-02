@@ -19,15 +19,15 @@ public class ProductsEntity {
   private String productName;
   private String categoryId;
   private String productDescription;
-  private Binary imageURL;
+  private Binary productImages;
   private List<String> merchantId;
-  private String merchantName;
   private double price;
   private int stock;
   private String brand;
   private int rating = 5;
   private int saleCount = 0;
   private List<String> reviewId;
+  private boolean activeStatus;
 }
 
 

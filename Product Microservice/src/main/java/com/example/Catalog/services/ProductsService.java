@@ -1,13 +1,10 @@
 package com.example.Catalog.services;
 
-
-
 import com.example.Catalog.dto.*;
 import com.example.Catalog.entities.ProductsEntity;
 
 public interface ProductsService {
-
-    public void addProducts(ProductsEntity currentProduct);
+  public void addNewProduct(ProductInputDto productInputDto);
     public boolean deleteProduct(String id);
     public void updateProduct(ProductsEntity currentproduct);
     public Iterable<ProductsEntity> productsList();

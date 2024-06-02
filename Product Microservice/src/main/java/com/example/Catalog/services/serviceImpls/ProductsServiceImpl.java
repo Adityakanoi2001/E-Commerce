@@ -3,7 +3,8 @@ package com.example.Catalog.services.serviceImpls;
 import com.example.Catalog.dto.*;
 import com.example.Catalog.entities.ProductsEntity;
 import com.example.Catalog.entities.Reviews;
-import com.example.Catalog.repositories.ProductsRepo;
+import com.example.Catalog.helper.Constants;
+import com.example.Catalog.repositories.ProductsRepository;
 import com.example.Catalog.services.ProductsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -17,20 +18,34 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 @Service
 @Slf4j
 public class ProductsServiceImpl implements ProductsService {
+
   @Autowired
-  ProductsRepo productsRepo;
+  private ProductsRepository productsRepository;
 
   @Autowired
   private MongoTemplate mongoTemplate;
 
+  public void addNewProduct(ProductInputDto productInputDto) {
+    log.info("Starting Function To Add New Product");
+    ProductsEntity productsEntity = new ProductsEntity();
+    BeanUtils.copyProperties(productInputDto, productsEntity);
+    productsEntity.setProductSkuId(generateProductId());
+    productsEntity.setActiveStatus(true);
+    productsRepository.save(productsEntity);
+  }
 
-  public void addProducts(ProductsEntity currentproduct) {
-    productsRepo.save(currentproduct);
+  private String generateProductId() {
+    AtomicLong productCounter = new AtomicLong(1);
+    long currentCount = productCounter.getAndIncrement();
+    return Constants.PRODUCT_ID_PREFIX + String.format(Constants.PRODUCT_ID_FORMAT,
+        currentCount / 100000,
+        currentCount % 100000);
   }
 
   @Override

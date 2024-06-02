@@ -2,12 +2,10 @@ package com.example.Catalog.controller;
 
 import com.example.Catalog.dto.*;
 import com.example.Catalog.entities.ProductsEntity;
-import com.example.Catalog.entities.UserDTO;
 import com.example.Catalog.helper.ProductCatalogApiPaths;
 import com.example.Catalog.services.ProductsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import jdk.jfr.Description;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,27 +18,26 @@ import java.util.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = ProductCatalogApiPaths.BASE_PATH)
 @Slf4j
+@RequestMapping(value = ProductCatalogApiPaths.BASE_PATH)
 public class ProductsController {
 
   @Autowired
   private ProductsService productsService;
 
-  @PostMapping(value = "/add")
-  public ResponseEntity<String> addProducts(@RequestBody ProductsDto productsDto) {
-//
-//    if (productsRepo.existsById(productsDto.getProductId()))
-//      return new ResponseEntity<String>("product id already exists add new product id", HttpStatus.OK);
-
-    ProductsEntity currentProduct = new ProductsEntity();
-    BeanUtils.copyProperties(productsDto, currentProduct);
-    currentProduct.setProductName(productsDto.getProductName().toLowerCase());
-    productsService.addProducts(currentProduct);
-
-    return new ResponseEntity<String>("Added Product with id : " + currentProduct.getProductSkuId(), HttpStatus.CREATED);
+  @Operation(summary = "Add New Product", description = "API to add a New Product to the System")
+  @PostMapping(ProductCatalogApiPaths.ADD_NEW_PRODUCT)
+  public ResponseEntity<String> addNewProductToSystem (@RequestBody ProductInputDto productInputDto) {
+    log.info("Invoking API for Adding New Product at Time: {}", new Date());
+    try {
+      productsService.addNewProduct(productInputDto);
+      log.info("Added Product with Name: {}", productInputDto.getProductName());
+      return new ResponseEntity<>("Added Product with ID: " + productInputDto.getProductName(), HttpStatus.CREATED);
+    } catch (Exception e) {
+      log.error("An error occurred while adding the product: {}", e.getMessage());
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
-
 
   @DeleteMapping(value = "/delete/{id}")
   public ResponseEntity<String> deleteProduct(@PathVariable("id") String id) {
@@ -51,7 +48,7 @@ public class ProductsController {
   }
 
   @PostMapping(value = "/update")
-  public ResponseEntity<String> updateProduct(@RequestBody ProductsDto product) {
+  public ResponseEntity<String> updateProduct(@RequestBody ProductInputDto product) {
     ProductsEntity currentproduct = new ProductsEntity();
     BeanUtils.copyProperties(product, currentproduct);
     productsService.updateProduct(currentproduct);
@@ -110,10 +107,10 @@ public class ProductsController {
 
   public ResponseEntity<ListOfProductItems> productsListByCategory(@PathVariable("categoryId") String categoryId) {
 
-    List<ProductsDto> productByCategory = new ArrayList<>();
+    List<ProductInputDto> productByCategory = new ArrayList<>();
     for (ProductsEntity productsEntity : productsRepo.findAll()) {
       if (productsEntity.getCategoryId().equals(categoryId)) {
-        ProductsDto productsDto = new ProductsDto();
+        ProductInputDto productsDto = new ProductInputDto();
         BeanUtils.copyProperties(productsEntity, productsDto);
         productByCategory.add(productsDto);
       }
@@ -132,12 +129,12 @@ public class ProductsController {
 
   @GetMapping(value = "/getByCategoryMerchant/{merchantId}")
 
-  public ResponseEntity<List<ProductsDto>> productsListByMerchant(@PathVariable("merchantId") String merchantId) {
+  public ResponseEntity<List<ProductInputDto>> productsListByMerchant(@PathVariable("merchantId") String merchantId) {
 
-    List<ProductsDto> ProductByCategoryMerchant = new ArrayList<>();
+    List<ProductInputDto> ProductByCategoryMerchant = new ArrayList<>();
     for (ProductsEntity productsEntity : productsRepo.findAll()) {
       if (productsEntity.getMerchantId().equals(merchantId)) {
-        ProductsDto productsDto = new ProductsDto();
+        ProductInputDto productsDto = new ProductInputDto();
         BeanUtils.copyProperties(productsEntity, productsDto);
         ProductByCategoryMerchant.add(productsDto);
       }
