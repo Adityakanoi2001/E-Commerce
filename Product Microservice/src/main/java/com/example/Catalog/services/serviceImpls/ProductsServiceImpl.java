@@ -8,6 +8,7 @@ import com.example.Catalog.services.ProductsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -157,7 +158,7 @@ public class ProductsServiceImpl implements ProductsService {
     query.addCriteria(Criteria.where("_id").is(productId));
     List<ProductsEntity> productsEntityList = mongoTemplate.find(query, ProductsEntity.class);
     int currentRating = productsEntityList.get(0).getRating();
-    Integer currentUsersCount = productsEntityList.get(0).getNoOfBuyers();
+    Integer currentUsersCount = productsEntityList.get(0).getSaleCount();
 
     int newRating = (currentRating + currentRatingNew) / currentUsersCount;
     if (newRating < 1) {
@@ -173,40 +174,40 @@ public class ProductsServiceImpl implements ProductsService {
   }
 
 
-  // INCREASE NO OF BUYERS - INTERNAL CALLING WHEN ORDER IS PLACED
-  @Override
-  public void countOfBuyers(String productId) {
-    Query query = new Query();
-    query.addCriteria(Criteria.where("_id").is(productId));
-    List<ProductsEntity> productsEntityList = mongoTemplate.find(query, ProductsEntity.class);
-    Integer currentNoOfBuyers = productsEntityList.get(0).getNoOfBuyers() + 1;
-    Update update = new Update();
-    update.set("noOfBuyers", currentNoOfBuyers);
-    mongoTemplate.findAndModify(query, update, ProductsEntity.class);
-    System.out.println(currentNoOfBuyers);
+  // INCREASE NO OF BUYERS FOR A PRODUCT - INTERNAL CALLING WHEN ORDER IS DELIVERED
+  public void incrementProductSaleCount(String productSkuId) {
+    Query query = new Query(Criteria.where("productSkuId").is(productSkuId));
+    Update update = new Update().inc("saleCount", 1);
+    ProductsEntity updatedProduct = mongoTemplate.findAndModify(query,
+        update,
+        FindAndModifyOptions.options().returnNew(true).upsert(false),
+        ProductsEntity.class);
+    if (updatedProduct == null) {
+      throw new IllegalArgumentException("Product with SKU ID " + productSkuId + " not found");
+    }
   }
 
   //REVIEW API TO ADD REVIEW
   public boolean addNewReviewForProduct(ProductReviewInputDto productReviewInputDto) {
-      try {
-          Reviews reviews = new Reviews();
-          BeanUtils.copyProperties(productReviewInputDto, reviews);
-          reviews.setReviewId(UUID.randomUUID().toString());
-          reviews.setDownVotes(0);
-          reviews.setUpVotes(0);
-          mongoTemplate.save(reviews);
-          Query query = new Query();
-          query.addCriteria(Criteria.where("productSkuId").is(productReviewInputDto.getProductSkuId()));
-          Update update = new Update();
-          update.push("reviewId", reviews.getReviewId());
-          mongoTemplate.findAndModify(query, update, ProductsEntity.class);
-          return true;
-      } catch (IllegalArgumentException e) {
-          log.error("Error: {}", e.getMessage());
-          return false;
-      } catch (Exception e) {
-          log.error("An unexpected error occurred: {}", e.getMessage());
-          return false;
-      }
+    try {
+      Reviews reviews = new Reviews();
+      BeanUtils.copyProperties(productReviewInputDto, reviews);
+      reviews.setReviewId(UUID.randomUUID().toString());
+      reviews.setDownVotes(0);
+      reviews.setUpVotes(0);
+      mongoTemplate.save(reviews);
+      Query query = new Query();
+      query.addCriteria(Criteria.where("productSkuId").is(productReviewInputDto.getProductSkuId()));
+      Update update = new Update();
+      update.push("reviewId", reviews.getReviewId());
+      mongoTemplate.findAndModify(query, update, ProductsEntity.class);
+      return true;
+    } catch (IllegalArgumentException e) {
+      log.error("Error: {}", e.getMessage());
+      return false;
+    } catch (Exception e) {
+      log.error("An unexpected error occurred: {}", e.getMessage());
+      return false;
+    }
   }
 }

@@ -26,7 +26,7 @@ public class ProductsEntity {
   private int stock;
   private String brand;
   private int rating = 5;
-  private int noOfBuyers = 1;
+  private int saleCount = 0;
   private List<String> reviewId;
 }
 

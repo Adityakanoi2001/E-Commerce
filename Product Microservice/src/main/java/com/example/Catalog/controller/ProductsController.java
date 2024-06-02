@@ -5,6 +5,8 @@ import com.example.Catalog.entities.ProductsEntity;
 import com.example.Catalog.entities.UserDTO;
 import com.example.Catalog.helper.ProductCatalogApiPaths;
 import com.example.Catalog.services.ProductsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import jdk.jfr.Description;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -212,16 +214,30 @@ public class ProductsController {
   }
 
 
-  @PostMapping("/increaseBuyersCount/{productId}")
-  public void increaseBuyersCount(@PathVariable("productId") String productId) {
-    productsService.countOfBuyers(productId);
-
+  @Operation(summary = "Increase Product Sale Count", description = "Increases the number of buyers for a specific product by its SKU ID")
+  @PostMapping(ProductCatalogApiPaths.INCREASE_PRODUCT_SALE_COUNT)
+  public ResponseEntity<Void> increaseBuyersCount  (@Parameter(description = "SKU ID of the product to update", required = true) @PathVariable String productSkuId) {
+    try {
+      productsService.incrementProductSaleCount(productSkuId);
+      return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    } catch (Exception e) {
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
+  @Operation(summary = "Add New Review for Product", description = "API to add a review for any product")
   @PostMapping(ProductCatalogApiPaths.ADD_NEW_REVIEW)
-  @Description("Api to Add Review for Any Product")
-  public ResponseEntity<Boolean> addNewReviewForProduct(@RequestBody ProductReviewInputDto productReviewInputDto) {
-    log.warn("Invoking API for Adding Product Review at Time : {}", new Date());
-    return new ResponseEntity<>(productsService.addNewReviewForProduct(productReviewInputDto), HttpStatus.OK);
+  public ResponseEntity<Boolean> addNewReviewForProduct (@RequestBody ProductReviewInputDto productReviewInputDto) {
+    log.warn("Invoking API for Adding Product Review at Time: {}", new Date());
+    try {
+      boolean result = productsService.addNewReviewForProduct(productReviewInputDto);
+      return new ResponseEntity<>(result, HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      log.error("Error adding review: {}", e.getMessage());
+      return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+      log.error("An unexpected error occurred: {}", e.getMessage());
+      return new ResponseEntity<>(false, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }

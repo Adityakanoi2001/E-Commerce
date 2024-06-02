@@ -21,7 +21,7 @@ public interface ProductsService {
     public Integer getStock(String productId);
     public int getRating(String productId,Integer currentRatingNew);
 
-   public void countOfBuyers(String productId);
+   public void incrementProductSaleCount(String productSkuId);
 
     /**
      * @param productReviewInputDto
