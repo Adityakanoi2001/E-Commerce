@@ -71,6 +71,7 @@ public class ProductsController {
   @Operation(summary = "Delete or Archive a Product", description = "API to Delete or Archive a Product")
   @DeleteMapping(ProductCatalogApiPaths.ARCHIVE_DELETE_PRODUCT)
   public ResponseEntity<String> archiveOrDeleteProduct(@PathVariable String productSkuId) {
+    log.info("Invoking API to Archive Or Delete a Product");
     if (productsService.archiveOrDeleteProduct(productSkuId)) {
       return new ResponseEntity<String>("Deleted product with id : " + productSkuId, HttpStatus.OK);
     }
