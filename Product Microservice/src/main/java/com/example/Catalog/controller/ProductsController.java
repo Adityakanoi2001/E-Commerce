@@ -39,6 +39,33 @@ public class ProductsController {
     }
   }
 
+  @Operation(summary = "Increase Product Sale Count", description = "Increases the number of buyers for a specific product by its SKU ID")
+  @PostMapping(ProductCatalogApiPaths.INCREASE_PRODUCT_SALE_COUNT)
+  public ResponseEntity<Void> increaseBuyersCount  (@Parameter(description = "SKU ID of the product to update", required = true) @PathVariable String productSkuId) {
+    try {
+      productsService.incrementProductSaleCount(productSkuId);
+      return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    } catch (Exception e) {
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Operation(summary = "Add New Review for Product", description = "API to add a review for any product")
+  @PostMapping(ProductCatalogApiPaths.ADD_NEW_REVIEW)
+  public ResponseEntity<Boolean> addNewReviewForProduct (@RequestBody ProductReviewInputDto productReviewInputDto) {
+    log.warn("Invoking API for Adding Product Review at Time: {}", new Date());
+    try {
+      boolean result = productsService.addNewReviewForProduct(productReviewInputDto);
+      return new ResponseEntity<>(result, HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      log.error("Error adding review: {}", e.getMessage());
+      return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+      log.error("An unexpected error occurred: {}", e.getMessage());
+      return new ResponseEntity<>(false, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   @DeleteMapping(value = "/delete/{id}")
   public ResponseEntity<String> deleteProduct(@PathVariable("id") String id) {
     if (productsService.deleteProduct(id)) {
@@ -210,31 +237,4 @@ public class ProductsController {
     return new ResponseEntity(productsService.getRating(productId, currentRatingNew), HttpStatus.OK);
   }
 
-
-  @Operation(summary = "Increase Product Sale Count", description = "Increases the number of buyers for a specific product by its SKU ID")
-  @PostMapping(ProductCatalogApiPaths.INCREASE_PRODUCT_SALE_COUNT)
-  public ResponseEntity<Void> increaseBuyersCount  (@Parameter(description = "SKU ID of the product to update", required = true) @PathVariable String productSkuId) {
-    try {
-      productsService.incrementProductSaleCount(productSkuId);
-      return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    } catch (Exception e) {
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  @Operation(summary = "Add New Review for Product", description = "API to add a review for any product")
-  @PostMapping(ProductCatalogApiPaths.ADD_NEW_REVIEW)
-  public ResponseEntity<Boolean> addNewReviewForProduct (@RequestBody ProductReviewInputDto productReviewInputDto) {
-    log.warn("Invoking API for Adding Product Review at Time: {}", new Date());
-    try {
-      boolean result = productsService.addNewReviewForProduct(productReviewInputDto);
-      return new ResponseEntity<>(result, HttpStatus.OK);
-    } catch (IllegalArgumentException e) {
-      log.error("Error adding review: {}", e.getMessage());
-      return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
-    } catch (Exception e) {
-      log.error("An unexpected error occurred: {}", e.getMessage());
-      return new ResponseEntity<>(false, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
 }
