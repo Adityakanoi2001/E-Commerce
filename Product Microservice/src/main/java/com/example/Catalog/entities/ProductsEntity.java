@@ -5,6 +5,7 @@ import org.bson.types.Binary;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
 import java.util.List;
 
 
@@ -28,6 +29,9 @@ public class ProductsEntity {
   private int saleCount = 0;
   private List<String> reviewId;
   private boolean activeStatus;
+  private Date dateAdded;
+  private Date dateModified;
+
 }
 
 

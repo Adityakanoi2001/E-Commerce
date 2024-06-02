@@ -10,4 +10,5 @@ import java.util.List;
 public interface ProductsRepository extends MongoRepository<ProductsEntity, String> {
     public List<ProductInputDto> findByProductName(String productName);
     public List<ProductInputDto> findByStock(Integer stock);
+    ProductsEntity findByProductSkuId(String productSkuId);
 }

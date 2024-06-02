@@ -14,9 +14,15 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.Temporal;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
@@ -31,12 +37,15 @@ public class ProductsServiceImpl implements ProductsService {
   @Autowired
   private MongoTemplate mongoTemplate;
 
+  // Add A New Product
   public void addNewProduct(ProductInputDto productInputDto) {
     log.info("Starting Function To Add New Product");
     ProductsEntity productsEntity = new ProductsEntity();
     BeanUtils.copyProperties(productInputDto, productsEntity);
     productsEntity.setProductSkuId(generateProductId());
     productsEntity.setActiveStatus(true);
+    productsEntity.setDateAdded(new Date());
+    productsEntity.setDateModified(new Date());
     productsRepository.save(productsEntity);
   }
 
@@ -48,13 +57,67 @@ public class ProductsServiceImpl implements ProductsService {
         currentCount % 100000);
   }
 
-  @Override
-  public boolean deleteProduct(String id) {
-    if (productsRepo.existsById(id)) {
-      productsRepo.deleteById(id);
+  // INCREASE NO OF BUYERS FOR A PRODUCT - INTERNAL CALLING WHEN ORDER IS DELIVERED
+  public void incrementProductSaleCount(String productSkuId) {
+    Query query = new Query(Criteria.where("productSkuId").is(productSkuId));
+    Update update = new Update().inc("saleCount", 1);
+    ProductsEntity updatedProduct = mongoTemplate.findAndModify(query,
+        update,
+        FindAndModifyOptions.options().returnNew(true).upsert(false),
+        ProductsEntity.class);
+    if (updatedProduct == null) {
+      throw new IllegalArgumentException("Product with SKU ID " + productSkuId + " not found");
+    }
+  }
+
+  //REVIEW API TO ADD REVIEW
+  public boolean addNewReviewForProduct(ProductReviewInputDto productReviewInputDto) {
+    try {
+      Reviews reviews = new Reviews();
+      BeanUtils.copyProperties(productReviewInputDto, reviews);
+      reviews.setReviewId(UUID.randomUUID().toString());
+      reviews.setDownVotes(0);
+      reviews.setUpVotes(0);
+      mongoTemplate.save(reviews);
+      Query query = new Query();
+      query.addCriteria(Criteria.where("productSkuId").is(productReviewInputDto.getProductSkuId()));
+      Update update = new Update();
+      update.push("reviewId", reviews.getReviewId());
+      mongoTemplate.findAndModify(query, update, ProductsEntity.class);
       return true;
+    } catch (IllegalArgumentException e) {
+      log.error("Error: {}", e.getMessage());
+      return false;
+    } catch (Exception e) {
+      log.error("An unexpected error occurred: {}", e.getMessage());
+      return false;
+    }
+  }
+
+  //Archive a Product
+  @Override
+  public boolean archiveOrDeleteProduct(String productSkuId) {
+    log.info("Function Execution for Deleting or Archive a Product From System : {}", productSkuId);
+    ProductsEntity productsEntity = productsRepository.findByProductSkuId(productSkuId);
+    if (Objects.nonNull(productsEntity)) {
+      Query query = new Query();
+      query.addCriteria(Criteria.where("productSkuId").is(productSkuId));
+      Update update = new Update();
+      update.push("activeStatus", false);
+      mongoTemplate.findAndModify(query, update, ProductsEntity.class);
     }
     return false;
+  }
+
+  //Delete a Product with Certain Conditions
+  @Scheduled(cron = "0 0 0 */7 * ?")
+  public void deleteOldInactiveProducts() {
+    List<ProductsEntity> productsEntityList = productsRepository.findAll();
+    LocalDate currentDate = LocalDate.now();
+    productsEntityList.stream()
+        .filter(product -> product.isActiveStatus())
+        .filter(product -> ChronoUnit.DAYS.between((Temporal) product.getDateModified(), currentDate) >= 21)
+        .forEach(product -> productsRepository.delete(product));
   }
 
   //
@@ -186,43 +249,5 @@ public class ProductsServiceImpl implements ProductsService {
     update1.set("rating", newRating);
     mongoTemplate.findAndModify(query, update1, ProductsEntity.class);
     return newRating;
-  }
-
-
-  // INCREASE NO OF BUYERS FOR A PRODUCT - INTERNAL CALLING WHEN ORDER IS DELIVERED
-  public void incrementProductSaleCount(String productSkuId) {
-    Query query = new Query(Criteria.where("productSkuId").is(productSkuId));
-    Update update = new Update().inc("saleCount", 1);
-    ProductsEntity updatedProduct = mongoTemplate.findAndModify(query,
-        update,
-        FindAndModifyOptions.options().returnNew(true).upsert(false),
-        ProductsEntity.class);
-    if (updatedProduct == null) {
-      throw new IllegalArgumentException("Product with SKU ID " + productSkuId + " not found");
-    }
-  }
-
-  //REVIEW API TO ADD REVIEW
-  public boolean addNewReviewForProduct(ProductReviewInputDto productReviewInputDto) {
-    try {
-      Reviews reviews = new Reviews();
-      BeanUtils.copyProperties(productReviewInputDto, reviews);
-      reviews.setReviewId(UUID.randomUUID().toString());
-      reviews.setDownVotes(0);
-      reviews.setUpVotes(0);
-      mongoTemplate.save(reviews);
-      Query query = new Query();
-      query.addCriteria(Criteria.where("productSkuId").is(productReviewInputDto.getProductSkuId()));
-      Update update = new Update();
-      update.push("reviewId", reviews.getReviewId());
-      mongoTemplate.findAndModify(query, update, ProductsEntity.class);
-      return true;
-    } catch (IllegalArgumentException e) {
-      log.error("Error: {}", e.getMessage());
-      return false;
-    } catch (Exception e) {
-      log.error("An unexpected error occurred: {}", e.getMessage());
-      return false;
-    }
   }
 }

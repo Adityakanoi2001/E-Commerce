@@ -27,7 +27,7 @@ public class ProductsController {
 
   @Operation(summary = "Add New Product", description = "API to add a New Product to the System")
   @PostMapping(ProductCatalogApiPaths.ADD_NEW_PRODUCT)
-  public ResponseEntity<String> addNewProductToSystem (@RequestBody ProductInputDto productInputDto) {
+  public ResponseEntity<String> addNewProductToSystem(@RequestBody ProductInputDto productInputDto) {
     log.info("Invoking API for Adding New Product at Time: {}", new Date());
     try {
       productsService.addNewProduct(productInputDto);
@@ -39,9 +39,11 @@ public class ProductsController {
     }
   }
 
-  @Operation(summary = "Increase Product Sale Count", description = "Increases the number of buyers for a specific product by its SKU ID")
+  @Operation(summary = "Increase Product Sale Count",
+      description = "Increases the number of buyers for a specific product by its SKU ID")
   @PostMapping(ProductCatalogApiPaths.INCREASE_PRODUCT_SALE_COUNT)
-  public ResponseEntity<Void> increaseBuyersCount  (@Parameter(description = "SKU ID of the product to update", required = true) @PathVariable String productSkuId) {
+  public ResponseEntity<Void> increaseBuyersCount(@Parameter(description = "SKU ID of the product to update",
+      required = true) @PathVariable String productSkuId) {
     try {
       productsService.incrementProductSaleCount(productSkuId);
       return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -52,7 +54,7 @@ public class ProductsController {
 
   @Operation(summary = "Add New Review for Product", description = "API to add a review for any product")
   @PostMapping(ProductCatalogApiPaths.ADD_NEW_REVIEW)
-  public ResponseEntity<Boolean> addNewReviewForProduct (@RequestBody ProductReviewInputDto productReviewInputDto) {
+  public ResponseEntity<Boolean> addNewReviewForProduct(@RequestBody ProductReviewInputDto productReviewInputDto) {
     log.warn("Invoking API for Adding Product Review at Time: {}", new Date());
     try {
       boolean result = productsService.addNewReviewForProduct(productReviewInputDto);
@@ -66,12 +68,14 @@ public class ProductsController {
     }
   }
 
-  @DeleteMapping(value = "/delete/{id}")
-  public ResponseEntity<String> deleteProduct(@PathVariable("id") String id) {
-    if (productsService.deleteProduct(id)) {
-      return new ResponseEntity<String>("Deleted product with id : " + id, HttpStatus.OK);
+  @Operation(summary = "Delete or Archive a Product", description = "API to Delete or Archive a Product")
+  @DeleteMapping(ProductCatalogApiPaths.ARCHIVE_DELETE_PRODUCT)
+  public ResponseEntity<String> archiveOrDeleteProduct(@PathVariable String productSkuId) {
+    if (productsService.archiveOrDeleteProduct(productSkuId)) {
+      return new ResponseEntity<String>("Deleted product with id : " + productSkuId, HttpStatus.OK);
     }
-    return new ResponseEntity<String>("product with id : " + id + " not Found!", HttpStatus.OK);
+    return new ResponseEntity<String>("product with id : " + productSkuId + " not Found!",
+        HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
   @PostMapping(value = "/update")
