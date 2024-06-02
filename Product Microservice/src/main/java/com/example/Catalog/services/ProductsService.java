@@ -1,14 +1,19 @@
 package com.example.Catalog.services;
 
-
-
 import com.example.Catalog.dto.*;
 import com.example.Catalog.entities.ProductsEntity;
 
 public interface ProductsService {
+  /**
+   * @param productInputDto
+   */
+  public void addNewProduct(ProductInputDto productInputDto);
 
-    public void addProducts(ProductsEntity currentProduct);
-    public boolean deleteProduct(String id);
+  /**
+   * @param productSkuId
+   * @return
+   */
+    public boolean archiveOrDeleteProduct (String productSkuId);
     public void updateProduct(ProductsEntity currentproduct);
     public Iterable<ProductsEntity> productsList();
     public ListOfProductEntities getAllProductsBySearchTerm(String productName);
@@ -21,10 +26,15 @@ public interface ProductsService {
     public Integer getStock(String productId);
     public int getRating(String productId,Integer currentRatingNew);
 
-   public void countOfBuyers(String productId);
-   public String reviews(String review,String userId,String productId);
+  /**
+   * @param productSkuId
+   */
+   public void incrementProductSaleCount(String productSkuId);
 
-
-
+    /**
+     * @param productReviewInputDto
+     * @return boolean success/failure
+     */
+   public boolean addNewReviewForProduct (ProductReviewInputDto productReviewInputDto);
 
 }

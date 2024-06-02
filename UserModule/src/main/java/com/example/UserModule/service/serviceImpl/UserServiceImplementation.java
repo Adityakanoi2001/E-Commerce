@@ -21,12 +21,14 @@ import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -48,6 +50,7 @@ import javax.transaction.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
 
+@Lazy
 @Slf4j
 @Primary
 @Service
@@ -192,17 +195,20 @@ public class UserServiceImplementation implements UserService {
     });
     executorService.shutdown();
 
-
-    try {
-      geoIP = geoIPLocationService.getIpLocation(ip, request);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    } catch (GeoIp2Exception e) {
-      throw new RuntimeException(e);
+    if (StringUtils.isNotEmpty(ip)) {
+      try {
+        geoIP = geoIPLocationService.getIpLocation(ip, request);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      } catch (GeoIp2Exception e) {
+        throw new RuntimeException(e);
+      }
+      updateFirstLoginTime(user.getId(), new Date());
+      userInsightsRepository.updateLocationAndDeviceInformation(user.getId(),
+          geoIP.getFullLocation(),
+          geoIP.getDevice());
+      userInsightsRepository.updateLiveUserFlag(user.getId(), USNValidAndWithinActiveYear(user.getUsn()));
     }
-    updateFirstLoginTime(user.getId(), new Date());
-    userInsightsRepository.updateLocationAndDeviceInformation(user.getId(), geoIP.getFullLocation(), geoIP.getDevice());
-    userInsightsRepository.updateLiveUserFlag(user.getId(), USNValidAndWithinActiveYear(user.getUsn()));
     return new SignInResponseDto(Constants.SUCCESS, token.getToken());
   }
 
@@ -253,20 +259,30 @@ public class UserServiceImplementation implements UserService {
   @Override
   public PasswordChangeResponseDto passwordChangeFunction(PasswordChangeDto passwordChangeDto) {
     if (!isValidPassword(passwordChangeDto.getNewPassword())) {
-      return PasswordChangeResponseDto.builder().response(ResponseMessages.INVALID_PASSWORD).update(false)
-          .token(passwordChangeDto.getUniqueTokenId()).build();
+      return PasswordChangeResponseDto.builder()
+          .response(ResponseMessages.INVALID_PASSWORD)
+          .update(false)
+          .token(passwordChangeDto.getUniqueTokenId())
+          .build();
     }
     try {
       UserTable user = authenticationService.getUser(passwordChangeDto.getUniqueTokenId());
       String hashedPassword = hashPassword(passwordChangeDto.getNewPassword());
       userRepository.updatePassword(user.getId(), hashedPassword);
-      return PasswordChangeResponseDto.builder().token(passwordChangeDto.getUniqueTokenId())
-          .response("Password Changed Successfully !").update(true).build();
+      return PasswordChangeResponseDto.builder()
+          .token(passwordChangeDto.getUniqueTokenId())
+          .response("Password Changed Successfully !")
+          .update(true)
+          .build();
     } catch (Exception e) {
-      log.warn("Authentication Failed for User with Token : {} TimeStamp : {}", passwordChangeDto.getUniqueTokenId(),
+      log.warn("Authentication Failed for User with Token : {} TimeStamp : {}",
+          passwordChangeDto.getUniqueTokenId(),
           new Date());
-      return PasswordChangeResponseDto.builder().token(passwordChangeDto.getUniqueTokenId())
-          .response(ResponseMessages.AUTHENTICATION_ERROR).update(false).build();
+      return PasswordChangeResponseDto.builder()
+          .token(passwordChangeDto.getUniqueTokenId())
+          .response(ResponseMessages.AUTHENTICATION_ERROR)
+          .update(false)
+          .build();
     }
   }
 
