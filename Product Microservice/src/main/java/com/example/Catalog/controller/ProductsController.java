@@ -55,7 +55,7 @@ public class ProductsController {
   @Operation(summary = "Add New Review for Product", description = "API to add a review for any product")
   @PostMapping(ProductCatalogApiPaths.ADD_NEW_REVIEW)
   public ResponseEntity<Boolean> addNewReviewForProduct(@RequestBody ProductReviewInputDto productReviewInputDto) {
-    log.warn("Invoking API for Adding Product Review at Time: {}", new Date());
+    log.info("Invoking API for Adding Product Review at Time: {}", new Date());
     try {
       boolean result = productsService.addNewReviewForProduct(productReviewInputDto);
       return new ResponseEntity<>(result, HttpStatus.OK);
@@ -78,6 +78,21 @@ public class ProductsController {
     return new ResponseEntity<String>("product with id : " + productSkuId + " not Found!",
         HttpStatus.INTERNAL_SERVER_ERROR);
   }
+
+  @Operation(summary = "Get Product Details", description = "API to Get Product Details")
+  @GetMapping(ProductCatalogApiPaths.GET_PRODUCT_BY_PRODUCT_SKU_CODE)
+  public ResponseEntity<ProductResponseDto> getProductByProductSkuId(@PathVariable String productSkuId) {
+    log.info("Invoking API to Get a Product Details with ProductSkuId {} at Time : {}", productSkuId, new Date());
+    try {
+      ProductResponseDto productResponseDto = productsService.getProductByProductSkuId(productSkuId);
+      log.info("Details of Product Retrieved Successfully: {}", productResponseDto.getProductName());
+      return new ResponseEntity<>(productResponseDto, HttpStatus.CREATED);
+    } catch (Exception e) {
+      log.error("An error occurred while getting the Product Details: {}", e.getMessage());
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
 
   @PostMapping(value = "/update")
   public ResponseEntity<String> updateProduct(@RequestBody ProductInputDto product) {
@@ -118,22 +133,6 @@ public class ProductsController {
     return new ResponseEntity<List<ProductsEntity>>(l, HttpStatus.OK);
 
   }
-
-
-  @GetMapping(value = "/getByProductId/{id}")
-  public ResponseEntity<List<ProductsEntity>> getByProductId(@PathVariable("id") String id) {
-    List<ProductsEntity> l = new ArrayList<ProductsEntity>();
-    Iterable<ProductsEntity> productsIterable = productsService.productsList();
-    for (ProductsEntity s : productsIterable) {
-      if (s.getProductSkuId().equals(id))
-        l.add(s);
-    }
-
-
-    return new ResponseEntity<List<ProductsEntity>>(l, HttpStatus.OK);
-
-  }
-
 
   @GetMapping(value = "/getByCategory/{categoryId}")
 

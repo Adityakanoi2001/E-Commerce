@@ -13,7 +13,29 @@ public interface ProductsService {
    * @param productSkuId
    * @return
    */
-    public boolean archiveOrDeleteProduct (String productSkuId);
+  public boolean archiveOrDeleteProduct(String productSkuId);
+
+  /**
+   * @param productSkuId
+   */
+  public void incrementProductSaleCount(String productSkuId);
+
+  /**
+   * @param productReviewInputDto
+   * @return boolean success/failure
+   */
+  public boolean addNewReviewForProduct(ProductReviewInputDto productReviewInputDto);
+
+  /**
+   * @param productSkuId
+   * @return
+   */
+  public ProductResponseDto getProductByProductSkuId(String productSkuId);
+
+
+
+  // --------- yet to be Modified -------------
+
     public void updateProduct(ProductsEntity currentproduct);
     public Iterable<ProductsEntity> productsList();
     public ListOfProductEntities getAllProductsBySearchTerm(String productName);
@@ -25,16 +47,5 @@ public interface ProductsService {
 
     public Integer getStock(String productId);
     public int getRating(String productId,Integer currentRatingNew);
-
-  /**
-   * @param productSkuId
-   */
-   public void incrementProductSaleCount(String productSkuId);
-
-    /**
-     * @param productReviewInputDto
-     * @return boolean success/failure
-     */
-   public boolean addNewReviewForProduct (ProductReviewInputDto productReviewInputDto);
 
 }

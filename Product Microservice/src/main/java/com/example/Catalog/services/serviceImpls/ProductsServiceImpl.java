@@ -3,6 +3,7 @@ package com.example.Catalog.services.serviceImpls;
 import com.example.Catalog.dto.*;
 import com.example.Catalog.entities.ProductsEntity;
 import com.example.Catalog.entities.Reviews;
+import com.example.Catalog.feign.FeignInterface;
 import com.example.Catalog.helper.Constants;
 import com.example.Catalog.repositories.ProductsRepository;
 import com.example.Catalog.services.ProductsService;
@@ -21,9 +22,12 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.Temporal;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
@@ -37,6 +41,9 @@ public class ProductsServiceImpl implements ProductsService {
   @Autowired
   private MongoTemplate mongoTemplate;
 
+  @Autowired
+  private FeignInterface feignInterface;
+
   // Add A New Product
   public void addNewProduct(ProductInputDto productInputDto) {
     log.info("Starting Function To Add New Product");
@@ -46,6 +53,9 @@ public class ProductsServiceImpl implements ProductsService {
     productsEntity.setActiveStatus(true);
     productsEntity.setDateAdded(new Date());
     productsEntity.setDateModified(new Date());
+    HashMap<String, Double> priceList = new HashMap<>();
+    priceList.put(productInputDto.getMerchantId(), productInputDto.getPrice());
+    productsEntity.setPrice(priceList);
     productsRepository.save(productsEntity);
   }
 
@@ -92,6 +102,35 @@ public class ProductsServiceImpl implements ProductsService {
       log.error("An unexpected error occurred: {}", e.getMessage());
       return false;
     }
+  }
+
+  //Get Product Details With Product SKU ID
+  @Override
+  public ProductResponseDto getProductByProductSkuId(String productSkuId) {
+    ProductResponseDto productResponseDto = new ProductResponseDto();
+    ProductsEntity productsEntity = productsRepository.findByProductSkuId(productSkuId);
+    BeanUtils.copyProperties(productsEntity, productResponseDto);
+    // Fetch merchants asynchronously
+    List<com.example.MerchantMongo.entity.Merchant> merchants =
+        CompletableFuture.supplyAsync(() -> feignInterface.getMerchantDetailList(productsEntity.getMerchantId()))
+            .join();
+    productResponseDto.setMerchants(merchants);
+    // Create price map
+    HashMap<com.example.MerchantMongo.entity.Merchant, Double> priceMap = new HashMap<>();
+    HashMap<String, Double> prices = productsEntity.getPrice();
+    // Populate price map
+    for (Map.Entry<String, Double> entry : prices.entrySet()) {
+      String merchantId = entry.getKey();
+      Double price = entry.getValue();
+      for (com.example.MerchantMongo.entity.Merchant merchant : merchants) {
+        if (merchant.getMerchantId().equals(merchantId)) {
+          priceMap.put(merchant, price);
+          break;
+        }
+      }
+    }
+    productResponseDto.setPrice(priceMap);
+    return productResponseDto;
   }
 
   //Archive a Product
