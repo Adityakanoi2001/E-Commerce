@@ -111,18 +111,18 @@ public class ProductsServiceImpl implements ProductsService {
     ProductsEntity productsEntity = productsRepository.findByProductSkuId(productSkuId);
     BeanUtils.copyProperties(productsEntity, productResponseDto);
     // Fetch merchants asynchronously
-    List<com.example.MerchantMongo.entity.Merchant> merchants =
+    List<ExternalMerchantDto> merchants =
         CompletableFuture.supplyAsync(() -> feignInterface.getMerchantDetailList(productsEntity.getMerchantId()))
             .join();
     productResponseDto.setMerchants(merchants);
     // Create price map
-    HashMap<com.example.MerchantMongo.entity.Merchant, Double> priceMap = new HashMap<>();
+    HashMap<ExternalMerchantDto, Double> priceMap = new HashMap<>();
     HashMap<String, Double> prices = productsEntity.getPrice();
     // Populate price map
     for (Map.Entry<String, Double> entry : prices.entrySet()) {
       String merchantId = entry.getKey();
       Double price = entry.getValue();
-      for (com.example.MerchantMongo.entity.Merchant merchant : merchants) {
+      for (ExternalMerchantDto merchant : merchants) {
         if (merchant.getMerchantId().equals(merchantId)) {
           priceMap.put(merchant, price);
           break;

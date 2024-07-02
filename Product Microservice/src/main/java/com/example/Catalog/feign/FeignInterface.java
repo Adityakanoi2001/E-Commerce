@@ -2,6 +2,7 @@ package com.example.Catalog.feign;
 
 
 
+import com.example.Catalog.dto.ExternalMerchantDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,5 +16,5 @@ public interface FeignInterface
     String getUserName(@PathVariable("email") String userId);
 
     @GetMapping(value = "")
-    Runnable getMerchantDetailList(List merchantIds);
+    List<ExternalMerchantDto> getMerchantDetailList(List<String> merchantIds);
 }
