@@ -93,6 +93,24 @@ public class ProductsController {
     }
   }
 
+  @Operation(summary = "Get Product Details By Search Terms", description = "API to Get Product Details by Search Term")
+  @GetMapping(ProductCatalogApiPaths.GET_LIST_OF_PRODUCT_BY_SEARCH_TERM)
+  public ResponseEntity<List<ProductResponseDto>> getProductsWithSearchText(@PathVariable(
+      "searchText") String searchText) {
+    log.info("Invoking API to Get Products with Name {} at Time : {}", searchText, new Date());
+    try {
+      List<ProductResponseDto> products = productsService.getAllProductsBySearchTerm(searchText);
+      if (products.isEmpty()) {
+        log.info("No Products Found with Name: {}", searchText);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      }
+      log.info("Products Retrieved Successfully with Name: {}", searchText);
+      return new ResponseEntity<>(products, HttpStatus.OK);
+    } catch (Exception e) {
+      log.error("An error occurred while getting the Products with Name {}: {}", searchText, e.getMessage());
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 
   @PostMapping(value = "/update")
   public ResponseEntity<String> updateProduct(@RequestBody ProductInputDto product) {
@@ -211,15 +229,6 @@ public class ProductsController {
 
     return new ResponseEntity(productsService.decreaseStock(stockDecreaseDto), HttpStatus.OK);
   }
-
-  @GetMapping(value = "/findMerchnatByProductName/{merchantId}/{productName}")
-  public ResponseEntity<ListOfProductEntities> MerchnatByProductName(@PathVariable("merchantId") String merchantId,
-      @PathVariable("productName") String productName) {
-
-    return new ResponseEntity(productsService.findByProductName(merchantId, productName), HttpStatus.OK);
-
-  }
-
 
   @GetMapping("/search/{searchTerm}")
   public ResponseEntity<ListOfProductEntities> getAllProductsBySearch(@PathVariable("searchTerm") String searchTerm) {

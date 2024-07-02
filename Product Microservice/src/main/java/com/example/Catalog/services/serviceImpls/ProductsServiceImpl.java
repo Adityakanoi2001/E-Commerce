@@ -30,6 +30,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -159,6 +160,30 @@ public class ProductsServiceImpl implements ProductsService {
         .forEach(product -> productsRepository.delete(product));
   }
 
+  // GET PRODUCTS DETAILS BY PRODUCT NAME - REGEX SEARCH
+  @Override
+  public List<ProductResponseDto> getAllProductsBySearchTerm(String searchText) {
+    log.info("Search text: {}", searchText);
+    List<ProductsEntity> productsEntities;
+    if (searchText.length() < 3) {
+      log.info("Search text is less than 3 characters. Returning all products.");
+      productsEntities = mongoTemplate.findAll(ProductsEntity.class);
+    } else {
+      Pattern regs = Pattern.compile(searchText, Pattern.CASE_INSENSITIVE);
+      Query query = new Query();
+      query.addCriteria(Criteria.where("productName").regex(regs));
+      log.info("Executing regex search for products with name matching: {}", searchText);
+      productsEntities = mongoTemplate.find(query, ProductsEntity.class);
+    }
+    List<ProductResponseDto> productResponseDtoList = productsEntities.stream().map(entity -> {
+      ProductResponseDto dto = new ProductResponseDto();
+      BeanUtils.copyProperties(entity, dto);
+      return dto;
+    }).collect(Collectors.toList());
+    log.info("Found {} products matching the search criteria.", productResponseDtoList.size());
+    return productResponseDtoList;
+  }
+
   //
   @Override
   public void updateProduct(ProductsEntity currentproduct) {
@@ -171,20 +196,6 @@ public class ProductsServiceImpl implements ProductsService {
     return productsRepo.findAll();
   }
 
-
-  // GET PRODUCTS DETAILS BY PRODUCT NAME REGEX
-  @Override
-  public ListOfProductEntities getAllProductsBySearchTerm(String productName) {
-
-    ListOfProductEntities listOfProductEntities = new ListOfProductEntities();
-    Pattern regs = Pattern.compile(productName, Pattern.CASE_INSENSITIVE);
-
-    Query query = new Query();
-    query.addCriteria(Criteria.where("productName").regex(regs));
-    List<ProductsEntity> productsEntities = mongoTemplate.find(query, ProductsEntity.class);
-    listOfProductEntities.setProductsEntities(productsEntities);
-    return listOfProductEntities;
-  }
 
   //Update Stock - MERCHNAT USER
   @Override
@@ -246,17 +257,6 @@ public class ProductsServiceImpl implements ProductsService {
     stockStatus.setStatus("Updated");
 
     return stockStatus;
-  }
-
-  //
-  @Override
-  public ListOfProductEntities findByProductName(String merchantId, String productName) {
-    Query query = new Query();
-    query.addCriteria(Criteria.where("productName").is(productName).and("merchantId").ne(merchantId));
-    List<ProductsEntity> li = mongoTemplate.find(query, ProductsEntity.class);
-    ListOfProductEntities listOfProductEntities = new ListOfProductEntities();
-    listOfProductEntities.setProductsEntities(li);
-    return listOfProductEntities;
   }
 
   @Override

@@ -3,6 +3,8 @@ package com.example.Catalog.services;
 import com.example.Catalog.dto.*;
 import com.example.Catalog.entities.ProductsEntity;
 
+import java.util.List;
+
 public interface ProductsService {
   /**
    * @param productInputDto
@@ -32,13 +34,17 @@ public interface ProductsService {
    */
   public ProductResponseDto getProductByProductSkuId(String productSkuId);
 
-
+  /**
+   * @param searchText
+   * @return List of Products
+   */
+  public List<ProductResponseDto> getAllProductsBySearchTerm(String searchText);
 
   // --------- yet to be Modified -------------
 
     public void updateProduct(ProductsEntity currentproduct);
     public Iterable<ProductsEntity> productsList();
-    public ListOfProductEntities getAllProductsBySearchTerm(String productName);
+
 
     public StockStatus updateStockValue(StockUpdateDto stockUpdateDto);
     public StockStatus increaseStock (StockUpdateDto stockUpdateDto);

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.Binary;
 import java.util.HashMap;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -16,8 +17,8 @@ public class ProductResponseDto {
   private String categoryId;
   private String productDescription;
   private Binary productImages;
-  private List<com.example.MerchantMongo.entity.Merchant> merchants;
-  private HashMap<com.example.MerchantMongo.entity.Merchant,Double> price;
+  private List<ExternalMerchantDto> merchants;
+  private HashMap<ExternalMerchantDto,Double> price;
   private int stock;
   private String brand;
   private int rating;
