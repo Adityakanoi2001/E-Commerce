@@ -45,7 +45,7 @@ public class ProductsServiceImpl implements ProductsService {
   @Autowired
   private FeignInterface feignInterface;
 
-  // Add A New Product
+  // Add A New Product To The System
   public void addNewProduct(ProductInputDto productInputDto) {
     log.info("Starting Function To Add New Product");
     ProductsEntity productsEntity = new ProductsEntity();
