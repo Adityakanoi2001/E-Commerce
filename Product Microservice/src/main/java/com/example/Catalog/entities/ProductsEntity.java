@@ -6,6 +6,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -22,7 +23,7 @@ public class ProductsEntity {
   private String productDescription;
   private Binary productImages;
   private List<String> merchantId;
-  private double price;
+  private HashMap<String,Double> price;
   private int stock;
   private String brand;
   private int rating = 5;
@@ -31,7 +32,6 @@ public class ProductsEntity {
   private boolean activeStatus;
   private Date dateAdded;
   private Date dateModified;
-
 }
 
 

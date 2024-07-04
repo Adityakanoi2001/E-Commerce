@@ -18,6 +18,7 @@ public class Reviews {
   private String reviewId;
   private String productSkuId;
   private String userId;
+  private String userName;
   private String userCity;
   private String reviewContent;
   private int upVotes;

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -55,7 +56,7 @@ public class ProductsController {
   @Operation(summary = "Add New Review for Product", description = "API to add a review for any product")
   @PostMapping(ProductCatalogApiPaths.ADD_NEW_REVIEW)
   public ResponseEntity<Boolean> addNewReviewForProduct(@RequestBody ProductReviewInputDto productReviewInputDto) {
-    log.warn("Invoking API for Adding Product Review at Time: {}", new Date());
+    log.info("Invoking API for Adding Product Review at Time: {}", new Date());
     try {
       boolean result = productsService.addNewReviewForProduct(productReviewInputDto);
       return new ResponseEntity<>(result, HttpStatus.OK);
@@ -79,6 +80,62 @@ public class ProductsController {
         HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
+  @Operation(summary = "Get Product Details", description = "API to Get Product Details")
+  @GetMapping(ProductCatalogApiPaths.GET_PRODUCT_BY_PRODUCT_SKU_CODE)
+  public ResponseEntity<ProductResponseDto> getProductByProductSkuId(@PathVariable String productSkuId) {
+    log.info("Invoking API to Get a Product Details with ProductSkuId {} at Time : {}", productSkuId, new Date());
+    try {
+      ProductResponseDto productResponseDto = productsService.getProductByProductSkuId(productSkuId);
+      log.info("Details of Product Retrieved Successfully: {}", productResponseDto.getProductName());
+      return new ResponseEntity<>(productResponseDto, HttpStatus.CREATED);
+    } catch (Exception e) {
+      log.error("An error occurred while getting the Product Details: {}", e.getMessage());
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Operation(summary = "Get Product Details By Search Terms", description = "API to Get Product Details by Search Term")
+  @GetMapping(ProductCatalogApiPaths.GET_LIST_OF_PRODUCT_BY_SEARCH_TERM)
+  public ResponseEntity<List<ProductResponseDto>> getProductsWithSearchText(@PathVariable(
+      "searchText") String searchText) {
+    log.info("Invoking API to Get Products with Name {} at Time : {}", searchText, new Date());
+    try {
+      List<ProductResponseDto> products = productsService.getAllProductsBySearchTerm(searchText);
+      if (products.isEmpty()) {
+        log.info("No Products Found with Name: {}", searchText);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      }
+      log.info("Products Retrieved Successfully with Name: {}", searchText);
+      return new ResponseEntity<>(products, HttpStatus.OK);
+    } catch (Exception e) {
+      log.error("An error occurred while getting the Products with Name {}: {}", searchText, e.getMessage());
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Operation(summary = "Get All Products", description = "API to Get All Products")
+  @GetMapping(ProductCatalogApiPaths.GET_ALL_PRODUCTS_LIST)
+  public ResponseEntity<Page<ProductResponseDto>> getProductsWithSearchText(
+      @RequestParam(value = "page", required = false) Integer page,
+      @RequestParam(value = "size", required = false) Integer size) {
+
+    log.info("Invoking API to Get All Products at Time : {}", new Date());
+    try {
+      Page<ProductResponseDto> products = productsService.getAllProducts(page, size);
+      if (products.isEmpty()) {
+        log.info("No Products Found");
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      }
+      log.info("Products Retrieved Successfully");
+      return new ResponseEntity<>(products, HttpStatus.OK);
+    } catch (Exception e) {
+      log.error("An error occurred while getting the Products {}", e.getMessage());
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+
+
   @PostMapping(value = "/update")
   public ResponseEntity<String> updateProduct(@RequestBody ProductInputDto product) {
     ProductsEntity currentproduct = new ProductsEntity();
@@ -87,23 +144,6 @@ public class ProductsController {
     return new ResponseEntity<String>("product updated with id +:" + currentproduct.getProductSkuId(), HttpStatus.OK);
   }
 
-
-  @GetMapping(value = "/productList")
-
-  public ResponseEntity<ListOfProductsItem> productsList() {
-    List<ProductDtos> l = new ArrayList<ProductDtos>();
-    Iterable<ProductsEntity> productsIterable = productsService.productsList();
-    for (ProductsEntity s : productsIterable) {
-      ProductDtos productsDto = new ProductDtos();
-      BeanUtils.copyProperties(s, productsDto);
-      l.add(productsDto);
-    }
-    ListOfProductsItem listOfProductItems = new ListOfProductsItem();
-    listOfProductItems.setProductsDtoList(l);
-    return new ResponseEntity(listOfProductItems, HttpStatus.OK);
-  }
-
-  //@PathVariable ("id") String id
 
   @PostMapping(value = "/getProducts")
   public ResponseEntity<List<ProductsEntity>> getByProductId(@RequestBody UserDTO userDTO) {
@@ -118,22 +158,6 @@ public class ProductsController {
     return new ResponseEntity<List<ProductsEntity>>(l, HttpStatus.OK);
 
   }
-
-
-  @GetMapping(value = "/getByProductId/{id}")
-  public ResponseEntity<List<ProductsEntity>> getByProductId(@PathVariable("id") String id) {
-    List<ProductsEntity> l = new ArrayList<ProductsEntity>();
-    Iterable<ProductsEntity> productsIterable = productsService.productsList();
-    for (ProductsEntity s : productsIterable) {
-      if (s.getProductSkuId().equals(id))
-        l.add(s);
-    }
-
-
-    return new ResponseEntity<List<ProductsEntity>>(l, HttpStatus.OK);
-
-  }
-
 
   @GetMapping(value = "/getByCategory/{categoryId}")
 
@@ -212,15 +236,6 @@ public class ProductsController {
 
     return new ResponseEntity(productsService.decreaseStock(stockDecreaseDto), HttpStatus.OK);
   }
-
-  @GetMapping(value = "/findMerchnatByProductName/{merchantId}/{productName}")
-  public ResponseEntity<ListOfProductEntities> MerchnatByProductName(@PathVariable("merchantId") String merchantId,
-      @PathVariable("productName") String productName) {
-
-    return new ResponseEntity(productsService.findByProductName(merchantId, productName), HttpStatus.OK);
-
-  }
-
 
   @GetMapping("/search/{searchTerm}")
   public ResponseEntity<ListOfProductEntities> getAllProductsBySearch(@PathVariable("searchTerm") String searchTerm) {

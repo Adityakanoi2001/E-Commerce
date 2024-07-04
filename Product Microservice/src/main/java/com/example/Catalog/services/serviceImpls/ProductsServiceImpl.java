@@ -3,12 +3,16 @@ package com.example.Catalog.services.serviceImpls;
 import com.example.Catalog.dto.*;
 import com.example.Catalog.entities.ProductsEntity;
 import com.example.Catalog.entities.Reviews;
+import com.example.Catalog.feign.FeignInterface;
 import com.example.Catalog.helper.Constants;
 import com.example.Catalog.repositories.ProductsRepository;
 import com.example.Catalog.services.ProductsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -21,11 +25,19 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.Temporal;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static com.example.Catalog.helper.Constants.DEFAULT_PAGE;
+import static com.example.Catalog.helper.Constants.DEFAULT_SIZE;
+import static com.example.Catalog.helper.Constants.MAX_SIZE;
 
 @Service
 @Slf4j
@@ -37,7 +49,10 @@ public class ProductsServiceImpl implements ProductsService {
   @Autowired
   private MongoTemplate mongoTemplate;
 
-  // Add A New Product
+  @Autowired
+  private FeignInterface feignInterface;
+
+  // Add A New Product To The System
   public void addNewProduct(ProductInputDto productInputDto) {
     log.info("Starting Function To Add New Product");
     ProductsEntity productsEntity = new ProductsEntity();
@@ -46,6 +61,9 @@ public class ProductsServiceImpl implements ProductsService {
     productsEntity.setActiveStatus(true);
     productsEntity.setDateAdded(new Date());
     productsEntity.setDateModified(new Date());
+    HashMap<String, Double> priceList = new HashMap<>();
+    priceList.put(productInputDto.getMerchantId(), productInputDto.getPrice());
+    productsEntity.setPrice(priceList);
     productsRepository.save(productsEntity);
   }
 
@@ -94,6 +112,35 @@ public class ProductsServiceImpl implements ProductsService {
     }
   }
 
+  //Get Product Details With Product SKU ID
+  @Override
+  public ProductResponseDto getProductByProductSkuId(String productSkuId) {
+    ProductResponseDto productResponseDto = new ProductResponseDto();
+    ProductsEntity productsEntity = productsRepository.findByProductSkuId(productSkuId);
+    BeanUtils.copyProperties(productsEntity, productResponseDto);
+    // Fetch merchants asynchronously
+    List<ExternalMerchantDto> merchants =
+        CompletableFuture.supplyAsync(() -> feignInterface.getMerchantDetailList(productsEntity.getMerchantId()))
+            .join();
+    productResponseDto.setMerchants(merchants);
+    // Create price map
+    HashMap<ExternalMerchantDto, Double> priceMap = new HashMap<>();
+    HashMap<String, Double> prices = productsEntity.getPrice();
+    // Populate price map
+    for (Map.Entry<String, Double> entry : prices.entrySet()) {
+      String merchantId = entry.getKey();
+      Double price = entry.getValue();
+      for (ExternalMerchantDto merchant : merchants) {
+        if (merchant.getMerchantId().equals(merchantId)) {
+          priceMap.put(merchant, price);
+          break;
+        }
+      }
+    }
+    productResponseDto.setPrice(priceMap);
+    return productResponseDto;
+  }
+
   //Archive a Product
   @Override
   public boolean archiveOrDeleteProduct(String productSkuId) {
@@ -120,32 +167,67 @@ public class ProductsServiceImpl implements ProductsService {
         .forEach(product -> productsRepository.delete(product));
   }
 
+  // GET PRODUCTS DETAILS BY PRODUCT NAME - REGEX SEARCH
+  @Override
+  public List<ProductResponseDto> getAllProductsBySearchTerm(String searchText) {
+    log.info("Search text: {}", searchText);
+    List<ProductsEntity> productsEntities;
+    if (searchText.length() < 3) {
+      log.info("Search text is less than 3 characters. Returning all products.");
+      productsEntities = mongoTemplate.findAll(ProductsEntity.class);
+    } else {
+      Pattern regs = Pattern.compile(searchText, Pattern.CASE_INSENSITIVE);
+      Query query = new Query();
+      query.addCriteria(Criteria.where("productName").regex(regs));
+      log.info("Executing regex search for products with name matching: {}", searchText);
+      productsEntities = mongoTemplate.find(query, ProductsEntity.class);
+    }
+    List<ProductResponseDto> productResponseDtoList = productsEntities.stream().map(entity -> {
+      ProductResponseDto dto = new ProductResponseDto();
+      BeanUtils.copyProperties(entity, dto);
+      return dto;
+    }).collect(Collectors.toList());
+    log.info("Found {} products matching the search criteria.", productResponseDtoList.size());
+    return productResponseDtoList;
+  }
+
   //
   @Override
   public void updateProduct(ProductsEntity currentproduct) {
     productsRepo.save(currentproduct);
   }
 
-  //GET ALL THE PRODUCTS
+  // Find ALL PRODUCTS IN PAGINATED CALL
   @Override
-  public Iterable<ProductsEntity> productsList() {
-    return productsRepo.findAll();
+  public Page<ProductResponseDto> getAllProducts(Integer page, Integer size) {
+    int validPage = (page == null || page < 0) ? DEFAULT_PAGE : page;
+    int validSize = (size == null || size <= 0) ? DEFAULT_SIZE : Math.min(size, MAX_SIZE);
+    Pageable pageable = PageRequest.of(validPage, validSize);
+    Page<ProductsEntity> productEntities = productsRepository.findAll(pageable);
+    return productEntities.map(this::convertToDto);
+  }
+  private ProductResponseDto convertToDto(ProductsEntity entity) {
+    ProductResponseDto dto = new ProductResponseDto();
+    BeanUtils.copyProperties(entity, dto);
+    List<ExternalMerchantDto> merchants =
+        CompletableFuture.supplyAsync(() -> feignInterface.getMerchantDetailList(entity.getMerchantId())).join();
+    dto.setMerchants(merchants);
+    HashMap<ExternalMerchantDto, Double> priceMap = new HashMap<>();
+    HashMap<String, Double> prices = entity.getPrice();
+    for (Map.Entry<String, Double> entry : prices.entrySet()) {
+      String merchantId = entry.getKey();
+      Double price = entry.getValue();
+      for (ExternalMerchantDto merchant : merchants) {
+        if (merchant.getMerchantId().equals(merchantId)) {
+          priceMap.put(merchant, price);
+          break;
+        }
+      }
+    }
+    dto.setPrice(priceMap);
+    return dto;
   }
 
-
-  // GET PRODUCTS DETAILS BY PRODUCT NAME REGEX
-  @Override
-  public ListOfProductEntities getAllProductsBySearchTerm(String productName) {
-
-    ListOfProductEntities listOfProductEntities = new ListOfProductEntities();
-    Pattern regs = Pattern.compile(productName, Pattern.CASE_INSENSITIVE);
-
-    Query query = new Query();
-    query.addCriteria(Criteria.where("productName").regex(regs));
-    List<ProductsEntity> productsEntities = mongoTemplate.find(query, ProductsEntity.class);
-    listOfProductEntities.setProductsEntities(productsEntities);
-    return listOfProductEntities;
-  }
 
   //Update Stock - MERCHNAT USER
   @Override
@@ -207,17 +289,6 @@ public class ProductsServiceImpl implements ProductsService {
     stockStatus.setStatus("Updated");
 
     return stockStatus;
-  }
-
-  //
-  @Override
-  public ListOfProductEntities findByProductName(String merchantId, String productName) {
-    Query query = new Query();
-    query.addCriteria(Criteria.where("productName").is(productName).and("merchantId").ne(merchantId));
-    List<ProductsEntity> li = mongoTemplate.find(query, ProductsEntity.class);
-    ListOfProductEntities listOfProductEntities = new ListOfProductEntities();
-    listOfProductEntities.setProductsEntities(li);
-    return listOfProductEntities;
   }
 
   @Override
