@@ -10,6 +10,9 @@ import com.example.Catalog.services.ProductsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -31,6 +34,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.example.Catalog.helper.Constants.DEFAULT_PAGE;
+import static com.example.Catalog.helper.Constants.DEFAULT_SIZE;
+import static com.example.Catalog.helper.Constants.MAX_SIZE;
 
 @Service
 @Slf4j
@@ -190,10 +197,35 @@ public class ProductsServiceImpl implements ProductsService {
     productsRepo.save(currentproduct);
   }
 
-  //GET ALL THE PRODUCTS
+  // Find ALL PRODUCTS IN PAGINATED CALL
   @Override
-  public Iterable<ProductsEntity> productsList() {
-    return productsRepo.findAll();
+  public Page<ProductResponseDto> getAllProducts(Integer page, Integer size) {
+    int validPage = (page == null || page < 0) ? DEFAULT_PAGE : page;
+    int validSize = (size == null || size <= 0) ? DEFAULT_SIZE : Math.min(size, MAX_SIZE);
+    Pageable pageable = PageRequest.of(validPage, validSize);
+    Page<ProductsEntity> productEntities = productsRepository.findAll(pageable);
+    return productEntities.map(this::convertToDto);
+  }
+  private ProductResponseDto convertToDto(ProductsEntity entity) {
+    ProductResponseDto dto = new ProductResponseDto();
+    BeanUtils.copyProperties(entity, dto);
+    List<ExternalMerchantDto> merchants =
+        CompletableFuture.supplyAsync(() -> feignInterface.getMerchantDetailList(entity.getMerchantId())).join();
+    dto.setMerchants(merchants);
+    HashMap<ExternalMerchantDto, Double> priceMap = new HashMap<>();
+    HashMap<String, Double> prices = entity.getPrice();
+    for (Map.Entry<String, Double> entry : prices.entrySet()) {
+      String merchantId = entry.getKey();
+      Double price = entry.getValue();
+      for (ExternalMerchantDto merchant : merchants) {
+        if (merchant.getMerchantId().equals(merchantId)) {
+          priceMap.put(merchant, price);
+          break;
+        }
+      }
+    }
+    dto.setPrice(priceMap);
+    return dto;
   }
 
 

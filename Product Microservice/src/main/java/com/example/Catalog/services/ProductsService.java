@@ -2,7 +2,9 @@ package com.example.Catalog.services;
 
 import com.example.Catalog.dto.*;
 import com.example.Catalog.entities.ProductsEntity;
+import org.springframework.data.domain.Page;
 
+import java.awt.print.Pageable;
 import java.util.List;
 
 public interface ProductsService {
@@ -40,11 +42,16 @@ public interface ProductsService {
    */
   public List<ProductResponseDto> getAllProductsBySearchTerm(String searchText);
 
+  /**
+   * @param page
+   * @param size
+   * @return
+   */
+  public Page<ProductResponseDto> getAllProducts(Integer page,Integer size);
+
   // --------- yet to be Modified -------------
 
     public void updateProduct(ProductsEntity currentproduct);
-    public Iterable<ProductsEntity> productsList();
-
 
     public StockStatus updateStockValue(StockUpdateDto stockUpdateDto);
     public StockStatus increaseStock (StockUpdateDto stockUpdateDto);

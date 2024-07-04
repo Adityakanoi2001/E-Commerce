@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -112,6 +113,29 @@ public class ProductsController {
     }
   }
 
+  @Operation(summary = "Get All Products", description = "API to Get All Products")
+  @GetMapping(ProductCatalogApiPaths.GET_ALL_PRODUCTS_LIST)
+  public ResponseEntity<Page<ProductResponseDto>> getProductsWithSearchText(
+      @RequestParam(value = "page", required = false) Integer page,
+      @RequestParam(value = "size", required = false) Integer size) {
+
+    log.info("Invoking API to Get All Products at Time : {}", new Date());
+    try {
+      Page<ProductResponseDto> products = productsService.getAllProducts(page, size);
+      if (products.isEmpty()) {
+        log.info("No Products Found");
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      }
+      log.info("Products Retrieved Successfully");
+      return new ResponseEntity<>(products, HttpStatus.OK);
+    } catch (Exception e) {
+      log.error("An error occurred while getting the Products {}", e.getMessage());
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+
+
   @PostMapping(value = "/update")
   public ResponseEntity<String> updateProduct(@RequestBody ProductInputDto product) {
     ProductsEntity currentproduct = new ProductsEntity();
@@ -120,23 +144,6 @@ public class ProductsController {
     return new ResponseEntity<String>("product updated with id +:" + currentproduct.getProductSkuId(), HttpStatus.OK);
   }
 
-
-  @GetMapping(value = "/productList")
-
-  public ResponseEntity<ListOfProductsItem> productsList() {
-    List<ProductDtos> l = new ArrayList<ProductDtos>();
-    Iterable<ProductsEntity> productsIterable = productsService.productsList();
-    for (ProductsEntity s : productsIterable) {
-      ProductDtos productsDto = new ProductDtos();
-      BeanUtils.copyProperties(s, productsDto);
-      l.add(productsDto);
-    }
-    ListOfProductsItem listOfProductItems = new ListOfProductsItem();
-    listOfProductItems.setProductsDtoList(l);
-    return new ResponseEntity(listOfProductItems, HttpStatus.OK);
-  }
-
-  //@PathVariable ("id") String id
 
   @PostMapping(value = "/getProducts")
   public ResponseEntity<List<ProductsEntity>> getByProductId(@RequestBody UserDTO userDTO) {
