@@ -1,11 +1,12 @@
 package com.example.Catalog.controller;
 
 import com.example.Catalog.dto.*;
+import com.example.Catalog.entities.Category;
 import com.example.Catalog.entities.ProductsEntity;
+import com.example.Catalog.helper.GraphQLResolver;
 import com.example.Catalog.helper.ProductCatalogApiPaths;
 import com.example.Catalog.services.ProductsService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,9 @@ public class ProductsController {
   @Autowired
   private ProductsService productsService;
 
+  @Autowired
+  private GraphQLResolver graphQLResolver;
+
   @Operation(summary = "Add New Product", description = "API to add a New Product to the System")
   @PostMapping(ProductCatalogApiPaths.ADD_NEW_PRODUCT)
   public ResponseEntity<String> addNewProductToSystem(@RequestBody ProductInputDto productInputDto) {
@@ -36,19 +40,6 @@ public class ProductsController {
       return new ResponseEntity<>("Added Product with ID: " + productInputDto.getProductName(), HttpStatus.CREATED);
     } catch (Exception e) {
       log.error("An error occurred while adding the product: {}", e.getMessage());
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  @Operation(summary = "Increase Product Sale Count",
-      description = "Increases the number of buyers for a specific product by its SKU ID")
-  @PostMapping(ProductCatalogApiPaths.INCREASE_PRODUCT_SALE_COUNT)
-  public ResponseEntity<Void> increaseBuyersCount(@Parameter(description = "SKU ID of the product to update",
-      required = true) @PathVariable String productSkuId) {
-    try {
-      productsService.incrementProductSaleCount(productSkuId);
-      return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    } catch (Exception e) {
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -152,6 +143,45 @@ public class ProductsController {
     }
   }
 
+  @Operation(summary = "Add Category", description = "API to add a new category")
+  @PostMapping(ProductCatalogApiPaths.ADD_NEW_CATEGORY)
+  public ResponseEntity<Void> addCategory(@RequestBody CategoryInputDto categoryInputDto) {
+    try {
+      Boolean response =
+          graphQLResolver.createCategory(categoryInputDto.getCategoryId(), categoryInputDto.getCategoryName());
+      if (response) {
+        log.info("Category Added Successfully with ID: {}", categoryInputDto.getCategoryId());
+        return new ResponseEntity<>(HttpStatus.CREATED);
+      } else {
+        log.error("Failed to add Category with ID: {}", categoryInputDto.getCategoryId());
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+      }
+    } catch (Exception e) {
+      log.error("An error occurred while adding the Category with ID {}: {}",
+          categoryInputDto.getCategoryId(),
+          e.getMessage());
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Operation(summary = "Add Category", description = "API to add a new category")
+  @PostMapping(ProductCatalogApiPaths.GET_ALL_AVAILABLE_CATEGORY)
+  public ResponseEntity<List<Category>> getAllCategoryAvailable() {
+    try {
+      List<Category> categoryList = graphQLResolver.getAllCategory();
+      if (categoryList.isEmpty()) {
+        log.info("No Category Available");
+        return new ResponseEntity<>(categoryList, HttpStatus.NO_CONTENT);
+      } else {
+        log.error("Failed to Fetch Categories");
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+      }
+    } catch (Exception e) {
+      log.error("An error occurred while adding the Category {}", e.getMessage());
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
 
   //Get Products By Category
   //Get Product By Merchant Code
@@ -232,13 +262,6 @@ public class ProductsController {
 
     return new ResponseEntity(productsService.decreaseStock(stockDecreaseDto), HttpStatus.OK);
   }
-
-  @GetMapping("/search/{searchTerm}")
-  public ResponseEntity<ListOfProductEntities> getAllProductsBySearch(@PathVariable("searchTerm") String searchTerm) {
-
-    return new ResponseEntity(productsService.getAllProductsBySearchTerm(searchTerm), HttpStatus.OK);
-  }
-
 
   @GetMapping("/getStock/{productId}")
   public ResponseEntity<Stock> getStock(@PathVariable("productId") String productId) {

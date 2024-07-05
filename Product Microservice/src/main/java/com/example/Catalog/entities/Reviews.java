@@ -6,9 +6,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.annotation.Id;
 
-import java.util.List;
-import java.util.UUID;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,8 +22,8 @@ public class Reviews {
   private int downVotes;
 
   public void setReviewContent(String reviewContent) {
-    if (reviewContent != null && reviewContent.split("\\s+").length > 200) {
-      throw new IllegalArgumentException("Review content cannot exceed 200 words");
+    if (reviewContent != null && reviewContent.split("\\s+").length > 300) {
+      throw new IllegalArgumentException("Review content cannot exceed 300 words");
     }
     this.reviewContent = reviewContent;
   }

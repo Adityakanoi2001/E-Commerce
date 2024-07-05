@@ -5,6 +5,7 @@ import com.example.Catalog.entities.ProductsEntity;
 import com.example.Catalog.entities.Reviews;
 import com.example.Catalog.feign.FeignInterface;
 import com.example.Catalog.helper.Constants;
+import com.example.Catalog.helper.GraphQLResolver;
 import com.example.Catalog.repositories.ProductsRepository;
 import com.example.Catalog.services.ProductsService;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +53,9 @@ public class ProductsServiceImpl implements ProductsService {
   @Autowired
   private FeignInterface feignInterface;
 
+  @Autowired
+  private GraphQLResolver graphQLResolver;
+
   // Add A New Product To The System
   public void addNewProduct(ProductInputDto productInputDto) {
     log.info("Starting Function To Add New Product");
@@ -65,6 +69,9 @@ public class ProductsServiceImpl implements ProductsService {
     priceList.put(productInputDto.getMerchantId(), productInputDto.getPrice());
     productsEntity.setPrice(priceList);
     productsRepository.save(productsEntity);
+
+    // Add the product to the category using the GraphQL resolver
+    graphQLResolver.addProductToCategory(productInputDto.getCategoryId(), productsEntity.getProductSkuId());
   }
 
   private String generateProductId() {

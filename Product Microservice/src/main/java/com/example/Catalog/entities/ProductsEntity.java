@@ -25,6 +25,8 @@ public class ProductsEntity {
   private List<String> merchantId;
   private HashMap<String,Double> price;
   private int stock;
+  private int reservedStock;
+  private int saleStock;
   private String brand;
   private int rating = 5;
   private int saleCount = 0;
