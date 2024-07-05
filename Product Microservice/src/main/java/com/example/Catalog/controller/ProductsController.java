@@ -134,6 +134,8 @@ public class ProductsController {
     }
   }
 
+//Get Products By Category
+  //Get Product By Merchant Code
 
 
   @PostMapping(value = "/update")
@@ -144,25 +146,8 @@ public class ProductsController {
     return new ResponseEntity<String>("product updated with id +:" + currentproduct.getProductSkuId(), HttpStatus.OK);
   }
 
-
-  @PostMapping(value = "/getProducts")
-  public ResponseEntity<List<ProductsEntity>> getByProductId(@RequestBody UserDTO userDTO) {
-    List<ProductsEntity> l = new ArrayList<ProductsEntity>();
-    Iterable<ProductsEntity> productsIterable = productsService.productsList();
-    for (ProductsEntity s : productsIterable) {
-      if (s.getProductSkuId().equals(userDTO.getUserId()))
-        l.add(s);
-    }
-
-
-    return new ResponseEntity<List<ProductsEntity>>(l, HttpStatus.OK);
-
-  }
-
   @GetMapping(value = "/getByCategory/{categoryId}")
-
   public ResponseEntity<ListOfProductItems> productsListByCategory(@PathVariable("categoryId") String categoryId) {
-
     List<ProductInputDto> productByCategory = new ArrayList<>();
     for (ProductsEntity productsEntity : productsRepo.findAll()) {
       if (productsEntity.getCategoryId().equals(categoryId)) {
@@ -208,14 +193,6 @@ public class ProductsController {
 
   }
 
-  @GetMapping(value = "/getProductsWithName/{productName}")
-
-  public ResponseEntity<ListOfProductItems> getProductsWithName(@PathVariable("productName") String productName) {
-
-    return new ResponseEntity(productsService.getAllProductsBySearchTerm(productName), HttpStatus.OK);
-  }
-
-
   @PostMapping(value = "/addStock")
   public ResponseEntity<StockStatus> callOtherServer(@RequestBody StockUpdateDto stockUpdateDto) {
 
@@ -251,10 +228,23 @@ public class ProductsController {
     return new ResponseEntity(stock, HttpStatus.OK);
   }
 
-  @PostMapping("/addRating/{productId}/{currentRatingNew}")
-  public ResponseEntity<Integer> getRating(@PathVariable("productId") String productId,
-      @PathVariable("currentRatingNew") Integer currentRatingNew) {
-    return new ResponseEntity(productsService.getRating(productId, currentRatingNew), HttpStatus.OK);
+  @Operation(summary = "Add Rating to Product", description = "API to Add Rating to a Product")
+  @PostMapping(ProductCatalogApiPaths.PRODUCT_RATING)
+  public ResponseEntity<Void> productRating(@RequestBody RatingInputDto ratingInputDto) {
+    log.info("Invoking API to Add Rating for Product ID {} with New Rating {} at Time: {}",
+        ratingInputDto.getProductSkuId(),
+        ratingInputDto.getRatingValue(),
+        new Date());
+    try {
+      productsService.productRating(ratingInputDto);
+      log.info("Rating Added Successfully for Product ID: {}", ratingInputDto.getProductSkuId());
+      return new ResponseEntity<>(HttpStatus.OK);
+    } catch (Exception e) {
+      log.error("An error occurred while adding the Rating for Product ID {}: {}",
+          ratingInputDto.getProductSkuId(),
+          e.getMessage());
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
 }

@@ -191,10 +191,51 @@ public class ProductsServiceImpl implements ProductsService {
     return productResponseDtoList;
   }
 
-  //
+  //RATING THE PRODUCT
   @Override
-  public void updateProduct(ProductsEntity currentproduct) {
-    productsRepo.save(currentproduct);
+  public void productRating(RatingInputDto ratingInputDto) {
+    log.info("Starting productRating method for Product SKU ID: {}", ratingInputDto.getProductSkuId());
+    try {
+      Query query = new Query();
+      query.addCriteria(Criteria.where("productSkuId").is(ratingInputDto.getProductSkuId()));
+      ProductsEntity productEntity = mongoTemplate.findOne(query, ProductsEntity.class);
+      if (productEntity == null) {
+        log.warn("No product found with SKU ID: {}", ratingInputDto.getProductSkuId());
+        return;
+      }
+      int currentRating = productEntity.getRating();
+      int currentUsersCount = productEntity.getSaleCount(); // Assuming saleCount is used for number of ratings
+      if (currentUsersCount == 0) {
+        log.warn("Current users count is zero for Product SKU ID: {}", ratingInputDto.getProductSkuId());
+        return;
+      }
+      double bayesianRating = getBayesianRating(ratingInputDto, currentRating, currentUsersCount);
+      Update update = new Update().set("rating", bayesianRating);
+      mongoTemplate.findAndModify(query, update, ProductsEntity.class);
+      log.info("Successfully updated rating for Product SKU ID: {} to {}",
+          ratingInputDto.getProductSkuId(),
+          bayesianRating);
+    } catch (Exception e) {
+      log.error("An error occurred while updating the rating for Product SKU ID: {}: {}",
+          ratingInputDto.getProductSkuId(),
+          e.getMessage());
+    }
+  }
+
+  private static double getBayesianRating(RatingInputDto ratingInputDto, int currentRating, int currentUsersCount) {
+    int newRatingValue = ratingInputDto.getRatingValue();
+    // Weighted average with decay
+    double decayFactor = 0.9; // Older ratings have less weight
+    double weightedCurrentRating = currentRating * Math.pow(decayFactor, currentUsersCount);
+    double newWeightedRatingSum = weightedCurrentRating + newRatingValue;
+    // Bayesian average
+    int minimumRatings = 10; // Minimum number of ratings for a more reliable average
+    double meanRating = 3.0; // Assumed mean rating (prior belief)
+    double bayesianRating =
+        ((minimumRatings * meanRating) + newWeightedRatingSum) / (minimumRatings + currentUsersCount + 1);
+    // Ensure the new rating is at least 1
+    bayesianRating = Math.max(bayesianRating, 1.0);
+    return bayesianRating;
   }
 
   // Find ALL PRODUCTS IN PAGINATED CALL
@@ -300,25 +341,5 @@ public class ProductsServiceImpl implements ProductsService {
     return currentStock;
   }
 
-  //RATING THE PRODUCT
-  @Override
-  public int getRating(String productId, Integer currentRatingNew) {
-    Query query = new Query();
-    query.addCriteria(Criteria.where("_id").is(productId));
-    List<ProductsEntity> productsEntityList = mongoTemplate.find(query, ProductsEntity.class);
-    int currentRating = productsEntityList.get(0).getRating();
-    Integer currentUsersCount = productsEntityList.get(0).getSaleCount();
 
-    int newRating = (currentRating + currentRatingNew) / currentUsersCount;
-    if (newRating < 1) {
-      newRating = 1;
-      Update update = new Update();
-      update.set("rating", newRating);
-      mongoTemplate.findAndModify(query, update, ProductsEntity.class);
-    }
-    Update update1 = new Update();
-    update1.set("rating", newRating);
-    mongoTemplate.findAndModify(query, update1, ProductsEntity.class);
-    return newRating;
-  }
 }
