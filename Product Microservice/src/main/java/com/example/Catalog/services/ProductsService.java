@@ -55,6 +55,12 @@ public interface ProductsService {
    */
   public void productRating(RatingInputDto ratingInputDto);
 
+  /**
+   * @param categoryId
+   * @return
+   */
+  public List<ProductResponseDto> getProductsByCategory(String categoryId);
+
   // --------- yet to be Modified -------------
 
     public void updateProduct(ProductsEntity currentproduct);

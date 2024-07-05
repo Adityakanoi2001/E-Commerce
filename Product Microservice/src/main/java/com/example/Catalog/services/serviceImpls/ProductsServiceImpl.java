@@ -68,10 +68,19 @@ public class ProductsServiceImpl implements ProductsService {
     HashMap<String, Double> priceList = new HashMap<>();
     priceList.put(productInputDto.getMerchantId(), productInputDto.getPrice());
     productsEntity.setPrice(priceList);
+    bifurcateStock(productsEntity, productInputDto.getStock());
     productsRepository.save(productsEntity);
-
-    // Add the product to the category using the GraphQL resolver
     graphQLResolver.addProductToCategory(productInputDto.getCategoryId(), productsEntity.getProductSkuId());
+  }
+  private void bifurcateStock(ProductsEntity productEntity, int totalStock) {
+    double reservedStockRatio = 0.20;
+    double saleStockRatio = 0.30;
+    int reservedStock = (int) (totalStock * reservedStockRatio);
+    int saleStock = (int) (totalStock * saleStockRatio);
+    int stock = totalStock - reservedStock - saleStock;
+    productEntity.setReservedStock(reservedStock);
+    productEntity.setSaleStock(saleStock);
+    productEntity.setStock(stock);
   }
 
   private String generateProductId() {
