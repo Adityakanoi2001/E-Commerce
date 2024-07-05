@@ -49,6 +49,12 @@ public interface ProductsService {
    */
   public Page<ProductResponseDto> getAllProducts(Integer page,Integer size);
 
+  /**
+   * @param ratingInputDto
+   * @return
+   */
+  public void productRating(RatingInputDto ratingInputDto);
+
   // --------- yet to be Modified -------------
 
     public void updateProduct(ProductsEntity currentproduct);
@@ -59,6 +65,5 @@ public interface ProductsService {
     public ListOfProductEntities findByProductName(String merchantId,String productName);
 
     public Integer getStock(String productId);
-    public int getRating(String productId,Integer currentRatingNew);
 
 }

@@ -9,4 +9,5 @@ public interface ProductCatalogApiPaths {
   String GET_PRODUCT_BY_PRODUCT_SKU_CODE = "/getProductByProductSkuId/{productSkuId}";
   String GET_LIST_OF_PRODUCT_BY_SEARCH_TERM = "/getProductsBySearchTerm/{searchText}";
   String GET_ALL_PRODUCTS_LIST ="/getAllProducts";
+  String PRODUCT_RATING = "/productRating";
 }
