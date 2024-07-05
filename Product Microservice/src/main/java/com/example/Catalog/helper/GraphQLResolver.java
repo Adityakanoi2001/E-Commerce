@@ -26,4 +26,8 @@ public class GraphQLResolver implements GraphQLQueryResolver, GraphQLMutationRes
   public Category addProductToCategory(String categoryId, String productId) {
     return categoryService.addProductToCategory(categoryId, productId);
   }
+
+  public Category getCategoryById(String categoryId) {
+    return categoryService.getCategoryById(categoryId);
+  }
 }

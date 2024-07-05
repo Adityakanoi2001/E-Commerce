@@ -1,6 +1,7 @@
 package com.example.Catalog.services.serviceImpls;
 
 import com.example.Catalog.dto.*;
+import com.example.Catalog.entities.Category;
 import com.example.Catalog.entities.ProductsEntity;
 import com.example.Catalog.entities.Reviews;
 import com.example.Catalog.feign.FeignInterface;
@@ -72,6 +73,7 @@ public class ProductsServiceImpl implements ProductsService {
     productsRepository.save(productsEntity);
     graphQLResolver.addProductToCategory(productInputDto.getCategoryId(), productsEntity.getProductSkuId());
   }
+
   private void bifurcateStock(ProductsEntity productEntity, int totalStock) {
     double reservedStockRatio = 0.20;
     double saleStockRatio = 0.30;
@@ -238,6 +240,23 @@ public class ProductsServiceImpl implements ProductsService {
     }
   }
 
+  //FIND ALL PRODUCTS BY CATEGORY ID
+  @Override
+  public List<ProductResponseDto> getProductsByCategory(String categoryId) {
+    Category category = graphQLResolver.getCategoryById(categoryId);
+    if (category == null) {
+      throw new IllegalArgumentException("Category not found with ID: " + categoryId);
+    }
+    List<String> productIds = category.getProductIds();
+    List<ProductsEntity> productsEntities = findByProductSkuIds(productIds);
+    return productsEntities.stream().map(this::convertToDto).collect(Collectors.toList());
+  }
+
+  private List<ProductsEntity> findByProductSkuIds(List<String> productIds) {
+    Query query = new Query(Criteria.where("productSkuId").in(productIds));
+    return mongoTemplate.find(query, ProductsEntity.class);
+  }
+
   private static double getBayesianRating(RatingInputDto ratingInputDto, int currentRating, int currentUsersCount) {
     int newRatingValue = ratingInputDto.getRatingValue();
     // Weighted average with decay
@@ -263,12 +282,13 @@ public class ProductsServiceImpl implements ProductsService {
     Page<ProductsEntity> productEntities = productsRepository.findAll(pageable);
     return productEntities.map(this::convertToDto);
   }
+
   private ProductResponseDto convertToDto(ProductsEntity entity) {
-    ProductResponseDto dto = new ProductResponseDto();
-    BeanUtils.copyProperties(entity, dto);
+    ProductResponseDto productResponseDto = new ProductResponseDto();
+    BeanUtils.copyProperties(entity, productResponseDto);
     List<ExternalMerchantDto> merchants =
         CompletableFuture.supplyAsync(() -> feignInterface.getMerchantDetailList(entity.getMerchantId())).join();
-    dto.setMerchants(merchants);
+    productResponseDto.setMerchants(merchants);
     HashMap<ExternalMerchantDto, Double> priceMap = new HashMap<>();
     HashMap<String, Double> prices = entity.getPrice();
     for (Map.Entry<String, Double> entry : prices.entrySet()) {
@@ -281,8 +301,8 @@ public class ProductsServiceImpl implements ProductsService {
         }
       }
     }
-    dto.setPrice(priceMap);
-    return dto;
+    productResponseDto.setPrice(priceMap);
+    return productResponseDto;
   }
 
 

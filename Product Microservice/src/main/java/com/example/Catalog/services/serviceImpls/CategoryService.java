@@ -33,4 +33,9 @@ public class CategoryService {
     }
     return category;
   }
+
+  public Category getCategoryById(String categoryId) {
+    Category category = categoryMap.get(categoryId);
+    return category;
+  }
 }

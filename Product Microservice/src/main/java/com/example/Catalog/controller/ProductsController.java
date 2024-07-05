@@ -6,7 +6,9 @@ import com.example.Catalog.entities.ProductsEntity;
 import com.example.Catalog.helper.GraphQLResolver;
 import com.example.Catalog.helper.ProductCatalogApiPaths;
 import com.example.Catalog.services.ProductsService;
+import io.swagger.annotations.ApiResponses;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -190,16 +192,23 @@ public class ProductsController {
     return new ResponseEntity<String>("product updated with id +:" + currentproduct.getProductSkuId(), HttpStatus.OK);
   }
 
-  @GetMapping(value = "/getByCategory/{categoryId}")
-  public ResponseEntity<List<ProductResponseDto>> productsListByCategory(@PathVariable("categoryId") String categoryId) {
-    List<ProductInputDto> productByCategory = new ArrayList<>();
-
-    productsService.get
-      return new ResponseEntity(listOfProductItems, HttpStatus.OK);
-    } else {
-      return new ResponseEntity("category id is null", HttpStatus.OK);
+  @Operation(summary = "Get Products by Category", description = "Returns a list of products by category ID")
+  @GetMapping(value = ProductCatalogApiPaths.GET_ALL_PRODUCTS_BY_CATEGORY_MAPPING)
+  public ResponseEntity<List<ProductResponseDto>> productsListByCategory(@PathVariable(
+      "categoryId") String categoryId) {
+    try {
+      List<ProductResponseDto> products = productsService.getProductsByCategory(categoryId);
+      if (!products.isEmpty()) {
+        return ResponseEntity.ok(products);
+      } else {
+        return ResponseEntity.notFound().build();
+      }
+    } catch (IllegalArgumentException e) {
+      log.error("Invalid categoryId provided: {}", categoryId, e);
+      return ResponseEntity.notFound().build();
+    } catch (Exception e) {
+      log.error("Error fetching products for categoryId: {}", categoryId, e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
-
   }
-
 }
