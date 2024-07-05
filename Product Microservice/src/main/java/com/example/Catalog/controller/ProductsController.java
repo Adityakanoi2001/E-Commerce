@@ -115,9 +115,8 @@ public class ProductsController {
 
   @Operation(summary = "Get All Products", description = "API to Get All Products")
   @GetMapping(ProductCatalogApiPaths.GET_ALL_PRODUCTS_LIST)
-  public ResponseEntity<Page<ProductResponseDto>> getProductsWithSearchText(
-      @RequestParam(value = "page", required = false) Integer page,
-      @RequestParam(value = "size", required = false) Integer size) {
+  public ResponseEntity<Page<ProductResponseDto>> getProductsWithSearchText(@RequestParam(value = "page",
+      required = false) Integer page, @RequestParam(value = "size", required = false) Integer size) {
 
     log.info("Invoking API to Get All Products at Time : {}", new Date());
     try {
@@ -134,7 +133,27 @@ public class ProductsController {
     }
   }
 
-//Get Products By Category
+  @Operation(summary = "Add Rating to Product", description = "API to Add Rating to a Product")
+  @PostMapping(ProductCatalogApiPaths.PRODUCT_RATING)
+  public ResponseEntity<Void> productRating(@RequestBody RatingInputDto ratingInputDto) {
+    log.info("Invoking API to Add Rating for Product ID {} with New Rating {} at Time: {}",
+        ratingInputDto.getProductSkuId(),
+        ratingInputDto.getRatingValue(),
+        new Date());
+    try {
+      productsService.productRating(ratingInputDto);
+      log.info("Rating Added Successfully for Product ID: {}", ratingInputDto.getProductSkuId());
+      return new ResponseEntity<>(HttpStatus.OK);
+    } catch (Exception e) {
+      log.error("An error occurred while adding the Rating for Product ID {}: {}",
+          ratingInputDto.getProductSkuId(),
+          e.getMessage());
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+
+  //Get Products By Category
   //Get Product By Merchant Code
 
 
@@ -227,24 +246,4 @@ public class ProductsController {
     stock.setStock(productsService.getStock(productId));
     return new ResponseEntity(stock, HttpStatus.OK);
   }
-
-  @Operation(summary = "Add Rating to Product", description = "API to Add Rating to a Product")
-  @PostMapping(ProductCatalogApiPaths.PRODUCT_RATING)
-  public ResponseEntity<Void> productRating(@RequestBody RatingInputDto ratingInputDto) {
-    log.info("Invoking API to Add Rating for Product ID {} with New Rating {} at Time: {}",
-        ratingInputDto.getProductSkuId(),
-        ratingInputDto.getRatingValue(),
-        new Date());
-    try {
-      productsService.productRating(ratingInputDto);
-      log.info("Rating Added Successfully for Product ID: {}", ratingInputDto.getProductSkuId());
-      return new ResponseEntity<>(HttpStatus.OK);
-    } catch (Exception e) {
-      log.error("An error occurred while adding the Rating for Product ID {}: {}",
-          ratingInputDto.getProductSkuId(),
-          e.getMessage());
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
 }
