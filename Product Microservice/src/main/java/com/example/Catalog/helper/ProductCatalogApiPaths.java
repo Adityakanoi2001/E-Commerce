@@ -12,4 +12,5 @@ public interface ProductCatalogApiPaths {
   String ADD_NEW_CATEGORY = "/addNewCategory";
   String GET_ALL_AVAILABLE_CATEGORY = "/getAllAvailableCategoryList";
   String GET_ALL_PRODUCTS_BY_CATEGORY_MAPPING = "/getByCategory/{categoryId}";
+  String UPDATE_PRODUCT = "/updateProduct";
 }

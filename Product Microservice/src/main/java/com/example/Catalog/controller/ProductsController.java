@@ -184,12 +184,24 @@ public class ProductsController {
     }
   }
 
-  @PostMapping(value = "/update")
-  public ResponseEntity<String> updateProduct(@RequestBody ProductInputDto product) {
-    ProductsEntity currentproduct = new ProductsEntity();
-    BeanUtils.copyProperties(product, currentproduct);
-    productsService.updateProduct(currentproduct);
-    return new ResponseEntity<String>("product updated with id +:" + currentproduct.getProductSkuId(), HttpStatus.OK);
+  @PostMapping(value = ProductCatalogApiPaths.UPDATE_PRODUCT)
+  public ResponseEntity<String> updateProductInformation(@RequestBody ProductInputDto productInputDto) {
+    try {
+      ProductsEntity productsEntity = new ProductsEntity();
+      BeanUtils.copyProperties(productInputDto, productsEntity);
+      boolean isUpdated = productsService.updateProductInformation(productsEntity);
+
+      if (isUpdated) {
+        log.info("Product updated successfully with SKU ID: {}", productsEntity.getProductSkuId());
+        return new ResponseEntity<>("Product updated with SKU ID: " + productsEntity.getProductSkuId(), HttpStatus.OK);
+      } else {
+        log.error("Failed to update product with SKU ID: {}", productsEntity.getProductSkuId());
+        return new ResponseEntity<>("Failed to update product", HttpStatus.BAD_REQUEST);
+      }
+    } catch (Exception e) {
+      log.error("An error occurred while updating the product: {}", e.getMessage());
+      return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Operation(summary = "Get Products by Category", description = "Returns a list of products by category ID")

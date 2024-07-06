@@ -61,15 +61,10 @@ public interface ProductsService {
    */
   public List<ProductResponseDto> getProductsByCategory(String categoryId);
 
-  // --------- yet to be Modified -------------
-
-    public void updateProduct(ProductsEntity currentproduct);
-
-    public StockStatus updateStockValue(StockUpdateDto stockUpdateDto);
-    public StockStatus increaseStock (StockUpdateDto stockUpdateDto);
-    public StockStatus decreaseStock (StockDecreaseDto stockDecreaseDto);
-    public ListOfProductEntities findByProductName(String merchantId,String productName);
-
-    public Integer getStock(String productId);
+  /**
+   * @param productsEntity
+   * @return
+   */
+  public Boolean updateProductInformation (ProductsEntity productsEntity);
 
 }

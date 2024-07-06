@@ -252,6 +252,55 @@ public class ProductsServiceImpl implements ProductsService {
     return productsEntities.stream().map(this::convertToDto).collect(Collectors.toList());
   }
 
+  @Override
+  public Boolean updateProductInformation(ProductsEntity productsEntity) {
+    log.info("Updating product information for SKU ID: {}", productsEntity.getProductSkuId());
+    try {
+      ProductsEntity existingProduct = productsRepository.findByProductSkuId(productsEntity.getProductSkuId());
+      if (existingProduct != null) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("productSkuId").is(productsEntity.getProductSkuId()));
+
+        Update update = new Update();
+
+        if (productsEntity.getProductName() != null) {
+          update.set("productName", productsEntity.getProductName());
+        }
+        if (productsEntity.getProductDescription() != null) {
+          update.set("productDescription", productsEntity.getProductDescription());
+        }
+        if (productsEntity.getProductImages() != null) {
+          update.set("productImages", productsEntity.getProductImages());
+        }
+        if (productsEntity.getCategoryId() != null) {
+          update.set("categoryId", productsEntity.getCategoryId());
+        }
+        if (productsEntity.getMerchantId() != null) {
+          update.set("merchantId", productsEntity.getMerchantId());
+        }
+        if (productsEntity.getPrice() != null) {
+          update.set("price", productsEntity.getPrice());
+        }
+        if (productsEntity.getStock() >= Integer.MIN_VALUE) {
+          update.set("stock", productsEntity.getStock());
+        }
+        if (productsEntity.getBrand() != null) {
+          update.set("brand", productsEntity.getBrand());
+        }
+        update.set("dateModified", new Date());
+        mongoTemplate.findAndModify(query, update, ProductsEntity.class);
+        log.info("Product information updated successfully for SKU ID: {}", productsEntity.getProductSkuId());
+        return true;
+      } else {
+        log.error("Product with SKU ID: {} not found", productsEntity.getProductSkuId());
+        return false;
+      }
+    } catch (Exception e) {
+      log.error("An error occurred while updating product information: {}", e.getMessage());
+      return false;
+    }
+  }
+
   private List<ProductsEntity> findByProductSkuIds(List<String> productIds) {
     Query query = new Query(Criteria.where("productSkuId").in(productIds));
     return mongoTemplate.find(query, ProductsEntity.class);
@@ -304,78 +353,5 @@ public class ProductsServiceImpl implements ProductsService {
     productResponseDto.setPrice(priceMap);
     return productResponseDto;
   }
-
-
-  //Update Stock - MERCHNAT USER
-  @Override
-  public StockStatus updateStockValue(StockUpdateDto stockUpdateDto) {
-
-    Query query = new Query();
-    query.addCriteria(Criteria.where("_id")
-        .is(stockUpdateDto.getProductId())
-        .and("merchantId")
-        .is(stockUpdateDto.getMerchantId()));
-    Update update = new Update();
-    update.set("stock", stockUpdateDto.getStock());
-    mongoTemplate.findAndModify(query, update, ProductsEntity.class);
-    return null;
-  }
-
-  //INCREASE STOCK MERCHNAT USER
-  @Override
-  public StockStatus increaseStock(StockUpdateDto stockUpdateDto) {
-
-    Query query = new Query();
-    query.addCriteria(Criteria.where("_id")
-        .is(stockUpdateDto.getProductId())
-        .and("merchantId")
-        .is(stockUpdateDto.getMerchantId()));
-
-    List<ProductsEntity> productsEntityList = mongoTemplate.find(query, ProductsEntity.class);
-    System.out.print(productsEntityList);
-
-    ProductsEntity productsEntity = productsEntityList.get(0);
-    int stock = stockUpdateDto.getStock() + productsEntity.getStock();
-    Update update = new Update();
-    update.set("productsEntities.stock", stock);
-    mongoTemplate.findAndModify(query, update, ProductsEntity.class);
-
-    return null;
-  }
-
-  // DECREASE STOCK - INTERNRANL CALLING WHEN ORDER IS PLACED FINGED IN ORDER CONTROLLLER
-  @Override
-  public StockStatus decreaseStock(StockDecreaseDto stockDecreaseDto) {
-    Query query = new Query();
-
-    query.addCriteria(Criteria.where("_id").is(stockDecreaseDto.getProductId()));
-
-    List<ProductsEntity> productsEntityList = mongoTemplate.find(query, ProductsEntity.class);
-
-    ProductsEntity productsEntity = productsEntityList.get(0);
-
-    int stock = productsEntity.getStock() - stockDecreaseDto.getQuantity();
-
-    Update update = new Update();
-
-    update.set("stock", stock);
-
-    mongoTemplate.findAndModify(query, update, ProductsEntity.class);
-
-    StockStatus stockStatus = new StockStatus();
-    stockStatus.setStatus("Updated");
-
-    return stockStatus;
-  }
-
-  @Override
-  public Integer getStock(String productId) {
-    Query query = new Query();
-    query.addCriteria(Criteria.where("_id").is(productId));
-    List<ProductsEntity> productsEntitiesList = mongoTemplate.find(query, ProductsEntity.class);
-    Integer currentStock = productsEntitiesList.get(0).getStock();
-    return currentStock;
-  }
-
 
 }

@@ -25,7 +25,6 @@ public class CategoryService {
     return true;
   }
 
-
   public Category addProductToCategory(String categoryId, String productId) {
     Category category = categoryMap.get(categoryId);
     if (category != null) {
