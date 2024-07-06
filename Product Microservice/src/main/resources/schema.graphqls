@@ -6,6 +6,7 @@ type Category {
 
 type Query {
     getCategory(categoryId: ID!): Category
+    getAllCategories: [Category!]!
 }
 
 type Mutation {
