@@ -1,10 +1,12 @@
 package com.example.Catalog.services.serviceImpls;
 
 import com.example.Catalog.dto.*;
+import com.example.Catalog.entities.Category;
 import com.example.Catalog.entities.ProductsEntity;
 import com.example.Catalog.entities.Reviews;
 import com.example.Catalog.feign.FeignInterface;
 import com.example.Catalog.helper.Constants;
+import com.example.Catalog.helper.GraphQLResolver;
 import com.example.Catalog.repositories.ProductsRepository;
 import com.example.Catalog.services.ProductsService;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +54,9 @@ public class ProductsServiceImpl implements ProductsService {
   @Autowired
   private FeignInterface feignInterface;
 
+  @Autowired
+  private GraphQLResolver graphQLResolver;
+
   // Add A New Product To The System
   public void addNewProduct(ProductInputDto productInputDto) {
     log.info("Starting Function To Add New Product");
@@ -64,7 +69,20 @@ public class ProductsServiceImpl implements ProductsService {
     HashMap<String, Double> priceList = new HashMap<>();
     priceList.put(productInputDto.getMerchantId(), productInputDto.getPrice());
     productsEntity.setPrice(priceList);
+    bifurcateStock(productsEntity, productInputDto.getStock());
     productsRepository.save(productsEntity);
+    graphQLResolver.addProductToCategory(productInputDto.getCategoryId(), productsEntity.getProductSkuId());
+  }
+
+  private void bifurcateStock(ProductsEntity productEntity, int totalStock) {
+    double reservedStockRatio = 0.20;
+    double saleStockRatio = 0.30;
+    int reservedStock = (int) (totalStock * reservedStockRatio);
+    int saleStock = (int) (totalStock * saleStockRatio);
+    int stock = totalStock - reservedStock - saleStock;
+    productEntity.setReservedStock(reservedStock);
+    productEntity.setSaleStock(saleStock);
+    productEntity.setStock(stock);
   }
 
   private String generateProductId() {
@@ -222,6 +240,72 @@ public class ProductsServiceImpl implements ProductsService {
     }
   }
 
+  //FIND ALL PRODUCTS BY CATEGORY ID
+  @Override
+  public List<ProductResponseDto> getProductsByCategory(String categoryId) {
+    Category category = graphQLResolver.getCategoryById(categoryId);
+    if (category == null) {
+      throw new IllegalArgumentException("Category not found with ID: " + categoryId);
+    }
+    List<String> productIds = category.getProductIds();
+    List<ProductsEntity> productsEntities = findByProductSkuIds(productIds);
+    return productsEntities.stream().map(this::convertToDto).collect(Collectors.toList());
+  }
+
+  @Override
+  public Boolean updateProductInformation(ProductsEntity productsEntity) {
+    log.info("Updating product information for SKU ID: {}", productsEntity.getProductSkuId());
+    try {
+      ProductsEntity existingProduct = productsRepository.findByProductSkuId(productsEntity.getProductSkuId());
+      if (existingProduct != null) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("productSkuId").is(productsEntity.getProductSkuId()));
+
+        Update update = new Update();
+
+        if (productsEntity.getProductName() != null) {
+          update.set("productName", productsEntity.getProductName());
+        }
+        if (productsEntity.getProductDescription() != null) {
+          update.set("productDescription", productsEntity.getProductDescription());
+        }
+        if (productsEntity.getProductImages() != null) {
+          update.set("productImages", productsEntity.getProductImages());
+        }
+        if (productsEntity.getCategoryId() != null) {
+          update.set("categoryId", productsEntity.getCategoryId());
+        }
+        if (productsEntity.getMerchantId() != null) {
+          update.set("merchantId", productsEntity.getMerchantId());
+        }
+        if (productsEntity.getPrice() != null) {
+          update.set("price", productsEntity.getPrice());
+        }
+        if (productsEntity.getStock() >= Integer.MIN_VALUE) {
+          update.set("stock", productsEntity.getStock());
+        }
+        if (productsEntity.getBrand() != null) {
+          update.set("brand", productsEntity.getBrand());
+        }
+        update.set("dateModified", new Date());
+        mongoTemplate.findAndModify(query, update, ProductsEntity.class);
+        log.info("Product information updated successfully for SKU ID: {}", productsEntity.getProductSkuId());
+        return true;
+      } else {
+        log.error("Product with SKU ID: {} not found", productsEntity.getProductSkuId());
+        return false;
+      }
+    } catch (Exception e) {
+      log.error("An error occurred while updating product information: {}", e.getMessage());
+      return false;
+    }
+  }
+
+  private List<ProductsEntity> findByProductSkuIds(List<String> productIds) {
+    Query query = new Query(Criteria.where("productSkuId").in(productIds));
+    return mongoTemplate.find(query, ProductsEntity.class);
+  }
+
   private static double getBayesianRating(RatingInputDto ratingInputDto, int currentRating, int currentUsersCount) {
     int newRatingValue = ratingInputDto.getRatingValue();
     // Weighted average with decay
@@ -247,12 +331,13 @@ public class ProductsServiceImpl implements ProductsService {
     Page<ProductsEntity> productEntities = productsRepository.findAll(pageable);
     return productEntities.map(this::convertToDto);
   }
+
   private ProductResponseDto convertToDto(ProductsEntity entity) {
-    ProductResponseDto dto = new ProductResponseDto();
-    BeanUtils.copyProperties(entity, dto);
+    ProductResponseDto productResponseDto = new ProductResponseDto();
+    BeanUtils.copyProperties(entity, productResponseDto);
     List<ExternalMerchantDto> merchants =
         CompletableFuture.supplyAsync(() -> feignInterface.getMerchantDetailList(entity.getMerchantId())).join();
-    dto.setMerchants(merchants);
+    productResponseDto.setMerchants(merchants);
     HashMap<ExternalMerchantDto, Double> priceMap = new HashMap<>();
     HashMap<String, Double> prices = entity.getPrice();
     for (Map.Entry<String, Double> entry : prices.entrySet()) {
@@ -265,81 +350,8 @@ public class ProductsServiceImpl implements ProductsService {
         }
       }
     }
-    dto.setPrice(priceMap);
-    return dto;
+    productResponseDto.setPrice(priceMap);
+    return productResponseDto;
   }
-
-
-  //Update Stock - MERCHNAT USER
-  @Override
-  public StockStatus updateStockValue(StockUpdateDto stockUpdateDto) {
-
-    Query query = new Query();
-    query.addCriteria(Criteria.where("_id")
-        .is(stockUpdateDto.getProductId())
-        .and("merchantId")
-        .is(stockUpdateDto.getMerchantId()));
-    Update update = new Update();
-    update.set("stock", stockUpdateDto.getStock());
-    mongoTemplate.findAndModify(query, update, ProductsEntity.class);
-    return null;
-  }
-
-  //INCREASE STOCK MERCHNAT USER
-  @Override
-  public StockStatus increaseStock(StockUpdateDto stockUpdateDto) {
-
-    Query query = new Query();
-    query.addCriteria(Criteria.where("_id")
-        .is(stockUpdateDto.getProductId())
-        .and("merchantId")
-        .is(stockUpdateDto.getMerchantId()));
-
-    List<ProductsEntity> productsEntityList = mongoTemplate.find(query, ProductsEntity.class);
-    System.out.print(productsEntityList);
-
-    ProductsEntity productsEntity = productsEntityList.get(0);
-    int stock = stockUpdateDto.getStock() + productsEntity.getStock();
-    Update update = new Update();
-    update.set("productsEntities.stock", stock);
-    mongoTemplate.findAndModify(query, update, ProductsEntity.class);
-
-    return null;
-  }
-
-  // DECREASE STOCK - INTERNRANL CALLING WHEN ORDER IS PLACED FINGED IN ORDER CONTROLLLER
-  @Override
-  public StockStatus decreaseStock(StockDecreaseDto stockDecreaseDto) {
-    Query query = new Query();
-
-    query.addCriteria(Criteria.where("_id").is(stockDecreaseDto.getProductId()));
-
-    List<ProductsEntity> productsEntityList = mongoTemplate.find(query, ProductsEntity.class);
-
-    ProductsEntity productsEntity = productsEntityList.get(0);
-
-    int stock = productsEntity.getStock() - stockDecreaseDto.getQuantity();
-
-    Update update = new Update();
-
-    update.set("stock", stock);
-
-    mongoTemplate.findAndModify(query, update, ProductsEntity.class);
-
-    StockStatus stockStatus = new StockStatus();
-    stockStatus.setStatus("Updated");
-
-    return stockStatus;
-  }
-
-  @Override
-  public Integer getStock(String productId) {
-    Query query = new Query();
-    query.addCriteria(Criteria.where("_id").is(productId));
-    List<ProductsEntity> productsEntitiesList = mongoTemplate.find(query, ProductsEntity.class);
-    Integer currentStock = productsEntitiesList.get(0).getStock();
-    return currentStock;
-  }
-
 
 }

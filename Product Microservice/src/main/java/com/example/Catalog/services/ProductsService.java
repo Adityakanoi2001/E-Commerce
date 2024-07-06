@@ -55,15 +55,16 @@ public interface ProductsService {
    */
   public void productRating(RatingInputDto ratingInputDto);
 
-  // --------- yet to be Modified -------------
+  /**
+   * @param categoryId
+   * @return
+   */
+  public List<ProductResponseDto> getProductsByCategory(String categoryId);
 
-    public void updateProduct(ProductsEntity currentproduct);
-
-    public StockStatus updateStockValue(StockUpdateDto stockUpdateDto);
-    public StockStatus increaseStock (StockUpdateDto stockUpdateDto);
-    public StockStatus decreaseStock (StockDecreaseDto stockDecreaseDto);
-    public ListOfProductEntities findByProductName(String merchantId,String productName);
-
-    public Integer getStock(String productId);
+  /**
+   * @param productsEntity
+   * @return
+   */
+  public Boolean updateProductInformation (ProductsEntity productsEntity);
 
 }
