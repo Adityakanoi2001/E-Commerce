@@ -147,13 +147,12 @@ public class ProductsController {
 
   @Operation(summary = "Add Category", description = "API to add a new category")
   @PostMapping(ProductCatalogApiPaths.ADD_NEW_CATEGORY)
-  public ResponseEntity<Void> addCategory(@RequestBody CategoryInputDto categoryInputDto) {
+  public ResponseEntity<Category> addCategory(@RequestBody CategoryInputDto categoryInputDto) {
     try {
-      Boolean response =
-          graphQLResolver.createCategory(categoryInputDto.getCategoryId(), categoryInputDto.getCategoryName());
-      if (response) {
+      Category response = graphQLResolver.createCategory(categoryInputDto.getCategoryId(), categoryInputDto.getCategoryName());
+      if (response != null) {
         log.info("Category Added Successfully with ID: {}", categoryInputDto.getCategoryId());
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
       } else {
         log.error("Failed to add Category with ID: {}", categoryInputDto.getCategoryId());
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -166,20 +165,20 @@ public class ProductsController {
     }
   }
 
-  @Operation(summary = "Add Category", description = "API to add a new category")
-  @PostMapping(ProductCatalogApiPaths.GET_ALL_AVAILABLE_CATEGORY)
+  @Operation(summary = "Get All Categories", description = "API to get all available categories")
+  @GetMapping(ProductCatalogApiPaths.GET_ALL_AVAILABLE_CATEGORY)
   public ResponseEntity<List<Category>> getAllCategoryAvailable() {
     try {
-      List<Category> categoryList = graphQLResolver.getAllCategory();
-      if (categoryList.isEmpty()) {
-        log.info("No Category Available");
-        return new ResponseEntity<>(categoryList, HttpStatus.NO_CONTENT);
+      List<Category> categoryList = graphQLResolver.getAllCategories();
+      if (!categoryList.isEmpty()) {
+        log.info("Retrieved {} categories", categoryList.size());
+        return new ResponseEntity<>(categoryList, HttpStatus.OK);
       } else {
-        log.error("Failed to Fetch Categories");
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        log.info("No Categories Available");
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
       }
     } catch (Exception e) {
-      log.error("An error occurred while adding the Category {}", e.getMessage());
+      log.error("An error occurred while fetching categories: {}", e.getMessage());
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

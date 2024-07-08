@@ -15,11 +15,11 @@ public class GraphQLResolver implements GraphQLQueryResolver, GraphQLMutationRes
   @Autowired
   private CategoryService categoryService;
 
-  public List<Category> getAllCategory() {
-    return categoryService.getAllCategories();
+  public Category getCategory(String categoryId) {
+    return categoryService.getCategoryById(categoryId);
   }
 
-  public Boolean createCategory(String categoryId, String categoryName) {
+  public Category createCategory(String categoryId, String categoryName) {
     return categoryService.createCategory(categoryId, categoryName);
   }
 
@@ -27,7 +27,7 @@ public class GraphQLResolver implements GraphQLQueryResolver, GraphQLMutationRes
     return categoryService.addProductToCategory(categoryId, productId);
   }
 
-  public Category getCategoryById(String categoryId) {
-    return categoryService.getCategoryById(categoryId);
+  public List<Category> getAllCategories() {
+    return categoryService.getAllCategories();
   }
 }

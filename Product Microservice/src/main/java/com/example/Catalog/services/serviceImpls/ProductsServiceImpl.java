@@ -243,7 +243,7 @@ public class ProductsServiceImpl implements ProductsService {
   //FIND ALL PRODUCTS BY CATEGORY ID
   @Override
   public List<ProductResponseDto> getProductsByCategory(String categoryId) {
-    Category category = graphQLResolver.getCategoryById(categoryId);
+    Category category = graphQLResolver.getCategory(categoryId);
     if (category == null) {
       throw new IllegalArgumentException("Category not found with ID: " + categoryId);
     }
