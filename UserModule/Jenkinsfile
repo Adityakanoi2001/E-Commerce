@@ -1,0 +1,149 @@
+pipeline {
+    agent any
+    
+    tools {
+        maven 'Maven'
+        jdk 'JDK21'
+    }
+    
+    options {
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '30'))
+    }
+    
+    triggers {
+        // Run daily at 2:00 AM
+        cron('H 2 * * *')
+    }
+    
+    environment {
+        BASE_URL = 'http://localhost:8800'
+        POSTGRES_HOST = credentials('postgres-host') ?: 'localhost'
+        POSTGRES_PORT = credentials('postgres-port') ?: '5432'
+        POSTGRES_DB = credentials('postgres-db') ?: 'ecommerce_users'
+        POSTGRES_USER = credentials('postgres-user')
+        POSTGRES_PASSWORD = credentials('postgres-password')
+        MONGODB_URI = credentials('mongodb-uri') ?: 'mongodb://localhost:27017/ecommerce'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Start Services') {
+            steps {
+                script {
+                    // Start PostgreSQL (if using Docker)
+                    sh '''
+                        docker run -d --name postgres-test \\
+                            -e POSTGRES_USER=${POSTGRES_USER} \\
+                            -e POSTGRES_PASSWORD=${POSTGRES_PASSWORD} \\
+                            -e POSTGRES_DB=${POSTGRES_DB} \\
+                            -p ${POSTGRES_PORT}:5432 \\
+                            postgres:15 || true
+                        
+                        docker run -d --name mongodb-test \\
+                            -p 27017:27017 \\
+                            mongo:7 || true
+                        
+                        sleep 10
+                    '''
+                }
+            }
+        }
+        
+        stage('Build Application') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+        
+        stage('Start Application') {
+            steps {
+                script {
+                    sh '''
+                        export SPRING_DATASOURCE_URL=jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+                        export SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+                        export SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+                        export SPRING_DATA_MONGODB_URI=${MONGODB_URI}
+                        
+                        nohup mvn spring-boot:run > app.log 2>&1 &
+                        echo $! > app.pid
+                        
+                        # Wait for application to start
+                        timeout 120 bash -c 'until curl -f http://localhost:8800/bliCommerce/UserController/Sign-In; do sleep 2; done' || true
+                        sleep 10
+                    '''
+                }
+            }
+        }
+        
+        stage('Run API Tests') {
+            steps {
+                script {
+                    sh '''
+                        mvn test -Dtest=TestRunner \\
+                            -Dapi.base.url=${BASE_URL} \\
+                            -Dcucumber.filter.tags="@SignUp or @SignIn or @PasswordReset or @PasswordChange or @AccountDeletion or @AccountDeactivation"
+                    '''
+                }
+            }
+        }
+        
+        stage('Publish Test Results') {
+            steps {
+                publishTestResults testResultsPattern: 'target/cucumber-reports/Cucumber.xml'
+                publishHTML([
+                    reportDir: 'target/cucumber-reports',
+                    reportFiles: 'Cucumber.html',
+                    reportName: 'Cucumber HTML Report',
+                    keepAll: true
+                ])
+            }
+        }
+        
+        stage('Archive Test Reports') {
+            steps {
+                archiveArtifacts artifacts: 'target/cucumber-reports/**/*', fingerprint: true
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                // Stop application
+                sh '''
+                    if [ -f app.pid ]; then
+                        kill $(cat app.pid) || true
+                    fi
+                    pkill -f spring-boot:run || true
+                '''
+                
+                // Cleanup Docker containers
+                sh '''
+                    docker stop postgres-test mongodb-test || true
+                    docker rm postgres-test mongodb-test || true
+                '''
+            }
+        }
+        success {
+            emailext (
+                subject: "✅ API Tests Passed - Build #${env.BUILD_NUMBER}",
+                body: "API automation tests completed successfully.\n\nView results: ${env.BUILD_URL}testReport/",
+                to: "${env.DEFAULT_RECIPIENTS ?: 'team@example.com'}"
+            )
+        }
+        failure {
+            emailext (
+                subject: "❌ API Tests Failed - Build #${env.BUILD_NUMBER}",
+                body: "API automation tests failed.\n\nView results: ${env.BUILD_URL}testReport/\n\nConsole output: ${env.BUILD_URL}console",
+                to: "${env.DEFAULT_RECIPIENTS ?: 'team@example.com'}"
+            )
+        }
+    }
+}
+

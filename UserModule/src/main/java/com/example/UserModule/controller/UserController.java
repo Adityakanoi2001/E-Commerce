@@ -1,9 +1,8 @@
 package com.example.UserModule.controller;
 
-
 import java.util.Date;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.example.UserModule.dto.*;
 import com.example.UserModule.exceptions.AuthenticationFailException;
@@ -16,12 +15,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Api("BliCommerce User API's")
+@Tag(name = "BliCommerce User API's", description = "User authentication and management APIs")
 @RequestMapping(UserModuleApiPath.BASE_PATH)
 @RestController
 public class UserController {
@@ -75,8 +74,8 @@ public class UserController {
   public ResponseEntity<AccountDeactivationResponseDto> AccountDeactivation(@RequestParam String authenticationToken,
       String action) {
     log.warn("Invoking API for Deactivation of User Account at Time : {}", new Date());
-    AccountDeactivationResponseDto accountDeactivationResponseDto =
-        userService.accountActivationDeactivationFunction(authenticationToken, action);
+    AccountDeactivationResponseDto accountDeactivationResponseDto = userService
+        .accountActivationDeactivationFunction(authenticationToken, action);
     return new ResponseEntity<>(accountDeactivationResponseDto, HttpStatus.OK);
   }
 }

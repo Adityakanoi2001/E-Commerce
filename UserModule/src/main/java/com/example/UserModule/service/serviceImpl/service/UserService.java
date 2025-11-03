@@ -1,6 +1,6 @@
 package com.example.UserModule.service.serviceImpl.service;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 
 import com.example.UserModule.dto.AccountDeactivationResponseDto;
